@@ -1,0 +1,118 @@
+CONTRAT DE LICENCE UTILISATEUR FINAL
+TAX FREE RDC - APPLICATION DESKTOP
+
+Version 1.0 - Janvier 2024
+
+================================================================================
+
+VEUILLEZ LIRE ATTENTIVEMENT CE CONTRAT DE LICENCE AVANT D'INSTALLER OU 
+D'UTILISER LE LOGICIEL TAX FREE RDC.
+
+En installant ou en utilisant ce logiciel, vous acceptez d'être lié par les 
+termes de ce contrat. Si vous n'acceptez pas ces termes, n'installez pas et 
+n'utilisez pas ce logiciel.
+
+================================================================================
+
+1. DÉFINITIONS
+
+"Logiciel" désigne l'application Tax Free RDC, incluant tous les fichiers, 
+bibliothèques, et documentation associés.
+
+"Utilisateur" désigne toute personne physique ou morale qui installe ou 
+utilise le Logiciel.
+
+"Éditeur" désigne Tax Free RDC et ses représentants légaux.
+
+================================================================================
+
+2. LICENCE D'UTILISATION
+
+L'Éditeur vous accorde une licence non exclusive, non transférable et révocable 
+pour utiliser le Logiciel conformément aux termes de ce contrat.
+
+Cette licence vous permet de :
+- Installer le Logiciel sur un nombre raisonnable d'ordinateurs
+- Utiliser le Logiciel dans le cadre de vos activités professionnelles
+- Effectuer des copies de sauvegarde du Logiciel
+
+================================================================================
+
+3. RESTRICTIONS
+
+Vous ne pouvez pas :
+- Copier, modifier, ou distribuer le Logiciel sans autorisation écrite
+- Désassembler, décompiler ou faire de l'ingénierie inverse sur le Logiciel
+- Louer, prêter ou transférer le Logiciel à des tiers
+- Utiliser le Logiciel à des fins illégales ou non autorisées
+- Supprimer ou modifier les mentions de droits d'auteur
+
+================================================================================
+
+4. PROPRIÉTÉ INTELLECTUELLE
+
+Le Logiciel et tous les droits de propriété intellectuelle associés restent 
+la propriété exclusive de l'Éditeur. Ce contrat ne vous confère aucun droit 
+de propriété sur le Logiciel.
+
+================================================================================
+
+5. CONFIDENTIALITÉ ET DONNÉES
+
+Le Logiciel peut collecter et traiter des données conformément à notre 
+Politique de Confidentialité. En utilisant le Logiciel, vous consentez à 
+cette collecte et ce traitement.
+
+Les données traitées incluent :
+- Informations d'identification des utilisateurs
+- Données de transactions Tax Free
+- Informations sur les voyageurs et commerçants
+
+================================================================================
+
+6. LIMITATION DE RESPONSABILITÉ
+
+LE LOGICIEL EST FOURNI "EN L'ÉTAT" SANS GARANTIE D'AUCUNE SORTE. L'ÉDITEUR 
+NE GARANTIT PAS QUE LE LOGICIEL SERA EXEMPT D'ERREURS OU FONCTIONNERA SANS 
+INTERRUPTION.
+
+EN AUCUN CAS L'ÉDITEUR NE SERA RESPONSABLE DES DOMMAGES DIRECTS, INDIRECTS, 
+ACCESSOIRES, SPÉCIAUX OU CONSÉCUTIFS RÉSULTANT DE L'UTILISATION OU DE 
+L'IMPOSSIBILITÉ D'UTILISER LE LOGICIEL.
+
+================================================================================
+
+7. MISES À JOUR
+
+L'Éditeur peut fournir des mises à jour du Logiciel. Ces mises à jour sont 
+soumises aux termes de ce contrat, sauf indication contraire.
+
+================================================================================
+
+8. RÉSILIATION
+
+Ce contrat reste en vigueur jusqu'à sa résiliation. L'Éditeur peut résilier 
+ce contrat immédiatement si vous ne respectez pas ses termes. En cas de 
+résiliation, vous devez cesser d'utiliser le Logiciel et supprimer toutes 
+les copies.
+
+================================================================================
+
+9. LOI APPLICABLE
+
+Ce contrat est régi par les lois de la République Démocratique du Congo. 
+Tout litige sera soumis à la compétence exclusive des tribunaux de Kinshasa.
+
+================================================================================
+
+10. CONTACT
+
+Pour toute question concernant ce contrat, veuillez contacter :
+
+Tax Free RDC
+Email: contact@taxfree.cd
+Site web: https://taxfree.cd
+
+================================================================================
+
+© 2024 Tax Free RDC. Tous droits réservés.

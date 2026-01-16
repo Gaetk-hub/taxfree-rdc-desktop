@@ -1,0 +1,92 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Tax Free RDC",
+  "version": "1.0.0",
+  "identifier": "cd.taxfree.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Tax Free RDC - Système de Détaxe",
+        "url": "/login",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 768,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": false,
+        "maximized": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' https://detaxerdc.onrender.com https://*.vercel.app; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+    },
+    "withGlobalTauri": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "Tax Free RDC",
+    "category": "Business",
+    "shortDescription": "Système de détaxe pour la République Démocratique du Congo",
+    "longDescription": "Tax Free RDC est une application professionnelle de gestion de détaxe (Tax Free) pour les commerçants, agents douaniers et opérateurs en République Démocratique du Congo. Elle permet de créer des bordereaux de détaxe, valider les remboursements de TVA et gérer l'ensemble du processus Tax Free.",
+    "copyright": "© 2024 Tax Free RDC. Tous droits réservés.",
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "wix": null,
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "installMode": "currentUser",
+        "languages": ["French", "English"],
+        "displayLanguageSelector": true
+      }
+    },
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": null
+    },
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": false
+      },
+      "deb": {
+        "depends": []
+      },
+      "rpm": {
+        "depends": []
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "pubkey": "",
+      "endpoints": [
+        "https://detaxerdc.vercel.app/api/tauri-update/{{target}}/{{arch}}/{{current_version}}"
+      ]
+    },
+    "shell": {
+      "open": true
+    }
+  }
+}

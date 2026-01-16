@@ -3,11 +3,15 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Sidebar, Navbar } from '../components/layout';
 import MobileBlocker from '../components/ui/MobileBlocker';
+import useAutoRefresh from '../hooks/useAutoRefresh';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { logout } = useAuthStore();
   const navigate = useNavigate();
+
+  // Auto-refresh data every 30 seconds (especially important for Tauri desktop app)
+  useAutoRefresh({ interval: 30000, enabled: true });
 
   const handleLogout = () => {
     logout();
