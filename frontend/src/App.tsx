@@ -26,6 +26,7 @@ import CommercantPage from './pages/public/CommercantPage';
 import CommentCaMarchePage from './pages/public/CommentCaMarchePage';
 import ContactPage from './pages/public/ContactPage';
 import CompleteRegistrationPage from './pages/public/CompleteRegistrationPage';
+import DownloadPage from './pages/public/DownloadPage';
 
 // Dashboard pages
 import AdminDashboard from './pages/dashboard/AdminDashboard';
@@ -158,6 +159,9 @@ function App() {
         <Route path="/comment-ca-marche" element={<CommentCaMarchePage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Route>
+      
+      {/* Download page (public, no layout) */}
+      <Route path="/download" element={<DownloadPage />} />
       
       {/* Auth routes */}
       <Route element={<AuthLayout />}>

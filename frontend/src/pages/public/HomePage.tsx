@@ -5,7 +5,7 @@ import FadeIn from '../../components/ui/FadeIn';
 import { 
   ShieldCheckIcon, BanknotesIcon, ClockIcon, MapPinIcon, CheckCircleIcon,
   ArrowRightIcon, BuildingStorefrontIcon, UserGroupIcon, DocumentTextIcon,
-  GlobeAltIcon, ChevronDownIcon, DevicePhoneMobileIcon, 
+  GlobeAltIcon, ChevronDownIcon, DevicePhoneMobileIcon, ComputerDesktopIcon,
   StarIcon, ChevronLeftIcon, ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolid } from '@heroicons/react/24/solid';
@@ -93,6 +93,19 @@ function HeroSection() {
               >
                 {t('hero.cta2')}
                 <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+            
+            {/* Download Desktop App Button */}
+            <div className="mt-8 pt-6 border-t border-blue-500/30">
+              <p className="text-blue-200 text-sm mb-3">{t('hero.downloadApp', 'Téléchargez l\'application desktop')}</p>
+              <Link 
+                to="/download" 
+                className="group inline-flex items-center gap-3 px-5 py-2.5 bg-blue-700/50 hover:bg-blue-700 text-white font-medium rounded-xl transition-all duration-300 border border-blue-400/30"
+              >
+                <ComputerDesktopIcon className="w-5 h-5" />
+                <span>{t('hero.downloadBtn', 'Télécharger pour PC')}</span>
+                <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
