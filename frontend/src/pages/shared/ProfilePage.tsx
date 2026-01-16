@@ -44,6 +44,7 @@ export default function ProfilePage() {
   // Photo upload state
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
 
   // Update profile photo mutation
   const updatePhotoMutation = useMutation({
@@ -167,11 +168,12 @@ export default function ProfilePage() {
             {/* Avatar with upload */}
             <div className="relative">
               <div className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
-                {previewUrl || user?.profile_photo ? (
+                {(previewUrl || user?.profile_photo) && !imageError ? (
                   <img
                     src={previewUrl || user?.profile_photo}
                     alt="Profile"
                     className="w-full h-full object-cover"
+                    onError={() => setImageError(true)}
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-3xl font-bold">
