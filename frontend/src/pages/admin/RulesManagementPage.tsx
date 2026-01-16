@@ -44,14 +44,60 @@ export default function RulesManagementPage() {
   const { hasPermission, isSuperAdmin } = usePermissions();
   const [editingRuleset, setEditingRuleset] = useState<RuleSet | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [initProgress, setInitProgress] = useState(0);
+  const [initStep, setInitStep] = useState('');
 
   // Permission checks
   const canEdit = isSuperAdmin || hasPermission('RULES', 'EDIT');
+  const canInitialize = isSuperAdmin;
 
   const { data, isLoading } = useQuery({
     queryKey: ['rulesets'],
     queryFn: () => rulesApi.listRulesets(),
   });
+
+  const initializeMutation = useMutation({
+    mutationFn: () => rulesApi.initializeRuleset(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rulesets'] });
+      toast.success('🎉 Configuration initialisée avec succès !');
+      setIsInitializing(false);
+      setInitProgress(0);
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.error || 'Erreur lors de l\'initialisation';
+      toast.error(message);
+      setIsInitializing(false);
+      setInitProgress(0);
+    },
+  });
+
+  const handleInitialize = async () => {
+    setIsInitializing(true);
+    setInitProgress(0);
+    
+    // Simulate progress steps for beautiful animation
+    const steps = [
+      { progress: 15, text: '🔧 Préparation du système...' },
+      { progress: 30, text: '📋 Création des règles de base...' },
+      { progress: 50, text: '💰 Configuration des frais...' },
+      { progress: 70, text: '🛡️ Mise en place des règles de risque...' },
+      { progress: 85, text: '✅ Activation de la configuration...' },
+      { progress: 95, text: '🚀 Finalisation...' },
+    ];
+
+    for (const step of steps) {
+      await new Promise(resolve => setTimeout(resolve, 400));
+      setInitProgress(step.progress);
+      setInitStep(step.text);
+    }
+
+    // Actually call the API
+    initializeMutation.mutate();
+    setInitProgress(100);
+    setInitStep('✨ Configuration terminée !');
+  };
 
   const activateMutation = useMutation({
     mutationFn: (id: string) => rulesApi.activateRuleset(id),
@@ -119,6 +165,91 @@ export default function RulesManagementPage() {
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        </div>
+      ) : isInitializing ? (
+        /* Beautiful initialization animation */
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white">
+          <div className="max-w-md mx-auto text-center">
+            <div className="relative w-24 h-24 mx-auto mb-6">
+              <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
+              <div 
+                className="absolute inset-0 rounded-full border-4 border-white border-t-transparent animate-spin"
+                style={{ animationDuration: '1s' }}
+              ></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <CogIcon className="h-10 w-10 animate-pulse" />
+              </div>
+            </div>
+            
+            <h2 className="text-2xl font-bold mb-2">Initialisation en cours...</h2>
+            <p className="text-blue-200 mb-6">{initStep}</p>
+            
+            {/* Progress bar */}
+            <div className="bg-white/20 rounded-full h-3 overflow-hidden mb-2">
+              <div 
+                className="h-full bg-white rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${initProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-blue-200">{initProgress}%</p>
+            
+            {/* Animated dots */}
+            <div className="flex justify-center gap-2 mt-6">
+              {[0, 1, 2].map((i) => (
+                <div 
+                  key={i}
+                  className="w-3 h-3 bg-white rounded-full animate-bounce"
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : !activeRuleset && rulesets.length === 0 ? (
+        /* No configuration - Show initialize button */
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-dashed border-amber-300 rounded-2xl p-8 text-center">
+          <div className="max-w-md mx-auto">
+            <div className="w-20 h-20 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <ExclamationTriangleIcon className="h-10 w-10 text-amber-500" />
+            </div>
+            
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Aucune configuration</h3>
+            <p className="text-gray-600 mb-6">
+              Le système Tax Free n'est pas encore configuré. Initialisez la configuration par défaut pour commencer.
+            </p>
+            
+            {canInitialize ? (
+              <button
+                onClick={handleInitialize}
+                className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                <CogIcon className="h-6 w-6" />
+                Initialiser la configuration
+              </button>
+            ) : (
+              <p className="text-sm text-amber-600 bg-amber-100 rounded-lg px-4 py-2 inline-block">
+                Seul un super administrateur peut initialiser la configuration.
+              </p>
+            )}
+            
+            <div className="mt-8 grid grid-cols-3 gap-4 text-left">
+              <div className="bg-white rounded-xl p-4 shadow-sm">
+                <div className="text-2xl mb-2">💰</div>
+                <p className="text-sm font-medium text-gray-900">Frais de service</p>
+                <p className="text-xs text-gray-500">15% par défaut</p>
+              </div>
+              <div className="bg-white rounded-xl p-4 shadow-sm">
+                <div className="text-2xl mb-2">📊</div>
+                <p className="text-sm font-medium text-gray-900">TVA</p>
+                <p className="text-xs text-gray-500">16% standard RDC</p>
+              </div>
+              <div className="bg-white rounded-xl p-4 shadow-sm">
+                <div className="text-2xl mb-2">🛡️</div>
+                <p className="text-sm font-medium text-gray-900">Règles de risque</p>
+                <p className="text-xs text-gray-500">3 règles de base</p>
+              </div>
+            </div>
+          </div>
         </div>
       ) : !activeRuleset ? (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center">

@@ -454,6 +454,7 @@ export const rulesApi = {
   updateRuleset: (id: string, data: Record<string, unknown>) => api.patch(`/rules/rulesets/${id}/`, data),
   activateRuleset: (id: string) => api.post(`/rules/rulesets/${id}/activate/`),
   getActiveRuleset: () => api.get('/rules/rulesets/active/'),
+  initializeRuleset: () => api.post('/rules/rulesets/initialize/'),
   
   // Product Categories
   listCategories: (params?: Record<string, unknown>) => api.get('/rules/categories/', { params }),

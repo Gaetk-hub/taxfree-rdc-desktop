@@ -133,6 +133,90 @@ class RuleSetViewSet(viewsets.ModelViewSet):
             )
         return Response(RuleSetDetailSerializer(ruleset).data)
 
+    @action(detail=False, methods=['post'])
+    def initialize(self, request):
+        """Initialize the default rule set for first-time setup."""
+        # Check if any ruleset already exists
+        if RuleSet.objects.exists():
+            return Response(
+                {'error': 'Des règles existent déjà. Impossible de réinitialiser.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create default RuleSet for RDC
+        with transaction.atomic():
+            ruleset = RuleSet.objects.create(
+                version='1.0.0',
+                name='Configuration RDC Standard',
+                description='Configuration par défaut pour le système Tax Free de la RDC',
+                min_purchase_amount=50000,  # 50,000 CDF minimum
+                min_age=16,
+                purchase_window_days=90,
+                exit_deadline_months=3,
+                eligible_residence_countries=[],
+                excluded_residence_countries=['CD'],  # Exclude DRC residents
+                excluded_categories=['TOBACCO', 'ALCOHOL', 'SERVICES'],
+                vat_rates={'default': '16.00'},
+                default_vat_rate=16.00,
+                operator_fee_percentage=15.00,
+                operator_fee_fixed=1000,
+                min_operator_fee=5000,
+                allowed_refund_methods=['CASH', 'BANK_TRANSFER', 'MOBILE_MONEY'],
+                risk_score_threshold=70,
+                high_value_threshold=5000000,  # 5M CDF
+                is_active=True,
+                activated_at=timezone.now(),
+                activated_by=request.user,
+                created_by=request.user
+            )
+            
+            # Create default risk rules
+            default_risk_rules = [
+                {
+                    'name': 'Montant élevé',
+                    'description': 'Bordereau avec montant supérieur au seuil',
+                    'field': 'total_amount',
+                    'operator': 'gt',
+                    'value': '5000000',
+                    'score_impact': 30,
+                },
+                {
+                    'name': 'Nouveau voyageur',
+                    'description': 'Premier bordereau du voyageur',
+                    'field': 'traveler_history_count',
+                    'operator': 'eq',
+                    'value': '0',
+                    'score_impact': 15,
+                },
+                {
+                    'name': 'Catégorie sensible',
+                    'description': 'Produits de catégorie à risque (bijoux, électronique)',
+                    'field': 'category',
+                    'operator': 'in',
+                    'value': 'JEWELRY,ELECTRONICS',
+                    'score_impact': 20,
+                },
+            ]
+            
+            for rule_data in default_risk_rules:
+                RiskRule.objects.create(ruleset=ruleset, **rule_data)
+        
+        AuditService.log(
+            actor=request.user,
+            action='RULESET_INITIALIZED',
+            entity='RuleSet',
+            entity_id=str(ruleset.id),
+            metadata={
+                'version': ruleset.version,
+                'name': ruleset.name
+            }
+        )
+        
+        return Response({
+            'message': 'Configuration initialisée avec succès !',
+            'ruleset': RuleSetDetailSerializer(ruleset).data
+        }, status=status.HTTP_201_CREATED)
+
 
 class RiskRuleViewSet(viewsets.ModelViewSet):
     """ViewSet for risk rule management."""
