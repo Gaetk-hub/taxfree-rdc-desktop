@@ -15,12 +15,16 @@ import type {
 // AXIOS INSTANCE CONFIGURATION
 // ============================================
 
+// API Base URL - Use environment variable in production, proxy in development
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 30000, // 30 seconds timeout
+  withCredentials: true, // Important for CORS with credentials
 });
 
 // Request interceptor to add auth token
