@@ -21,28 +21,34 @@ const getPlatform = (): 'windows' | 'macos' | 'linux' | 'unknown' => {
   return 'unknown';
 };
 
-// Platform info
+// GitHub Release base URL
+const GITHUB_RELEASE_URL = 'https://github.com/Gaetk-hub/taxfree-rdc-desktop/releases/download/v1.0.0';
+
+// Platform info with direct download links
 const platforms = {
   windows: {
     name: 'Windows',
     icon: '🪟',
     description: 'Windows 10/11 (64-bit)',
-    fileName: 'Tax-Free-RDC-Setup.exe',
-    size: '~15 MB',
+    fileName: 'Tax.Free.RDC_1.0.0_x64-setup.exe',
+    size: '4.28 MB',
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.0_x64-setup.exe`,
   },
   macos: {
     name: 'macOS',
     icon: '🍎',
     description: 'macOS 10.15+ (Intel & Apple Silicon)',
-    fileName: 'Tax-Free-RDC.dmg',
-    size: '~12 MB',
+    fileName: 'Tax.Free.RDC_1.0.0_aarch64.dmg',
+    size: '5 MB',
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.0_aarch64.dmg`,
   },
   linux: {
     name: 'Linux',
     icon: '🐧',
     description: 'Ubuntu, Debian, Fedora (64-bit)',
-    fileName: 'Tax-Free-RDC.AppImage',
-    size: '~18 MB',
+    fileName: 'Tax.Free.RDC_1.0.0_amd64.AppImage',
+    size: '79.2 MB',
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.0_amd64.AppImage`,
   },
 };
 
@@ -72,9 +78,8 @@ export default function DownloadPage() {
 
   const currentPlatform = platforms[selectedPlatform];
 
-  // For now, downloads are not available yet - will be enabled after first release
-  const downloadsAvailable = false;
-  const downloadUrl = `https://gitlab.com/Gaetk/detaxerdc/-/releases`;
+  // Downloads are now available on GitHub Releases
+  const downloadsAvailable = true;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -134,7 +139,8 @@ export default function DownloadPage() {
             <div className="text-center">
               {downloadsAvailable ? (
                 <a
-                  href={downloadUrl}
+                  href={currentPlatform.downloadUrl}
+                  download
                   className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg"
                 >
                   <ArrowDownTrayIcon className="w-6 h-6" />
