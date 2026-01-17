@@ -4,11 +4,7 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/downloads/:path*",
-      "destination": "/downloads/:path*"
-    },
-    {
-      "source": "/((?!downloads).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],

@@ -12,14 +12,19 @@ import {
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 
-// Platform detection (Windows and macOS only)
-const getPlatform = (): 'windows' | 'macos' => {
+// Platform detection
+const getPlatform = (): 'windows' | 'macos' | 'linux' | 'unknown' => {
   const userAgent = navigator.userAgent.toLowerCase();
+  if (userAgent.includes('win')) return 'windows';
   if (userAgent.includes('mac')) return 'macos';
-  return 'windows'; // Default to Windows
+  if (userAgent.includes('linux')) return 'linux';
+  return 'unknown';
 };
 
-// Platform info with direct download links (hosted on Vercel)
+// GitHub Release base URL
+const GITHUB_RELEASE_URL = 'https://github.com/Gaetk-hub/taxfree-rdc-desktop/releases/download/v1.0.0';
+
+// Platform info with direct download links
 const platforms = {
   windows: {
     name: 'Windows',
@@ -27,7 +32,7 @@ const platforms = {
     description: 'Windows 10/11 (64-bit)',
     fileName: 'Tax.Free.RDC_1.0.0_x64-setup.exe',
     size: '4.28 MB',
-    downloadUrl: '/downloads/Tax.Free.RDC_1.0.0_x64-setup.exe',
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.0_x64-setup.exe`,
   },
   macos: {
     name: 'macOS',
@@ -35,7 +40,15 @@ const platforms = {
     description: 'macOS 10.15+ (Intel & Apple Silicon)',
     fileName: 'Tax.Free.RDC_1.0.0_aarch64.dmg',
     size: '5 MB',
-    downloadUrl: '/downloads/Tax.Free.RDC_1.0.0_aarch64.dmg',
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.0_aarch64.dmg`,
+  },
+  linux: {
+    name: 'Linux',
+    icon: '🐧',
+    description: 'Ubuntu, Debian, Fedora (64-bit)',
+    fileName: 'Tax.Free.RDC_1.0.0_amd64.AppImage',
+    size: '79.2 MB',
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.0_amd64.AppImage`,
   },
 };
 
@@ -59,7 +72,9 @@ const features = [
 
 export default function DownloadPage() {
   useTranslation(); // For future translations
-  const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'macos'>(getPlatform());
+  const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'macos' | 'linux'>(
+    getPlatform() === 'unknown' ? 'windows' : getPlatform() as 'windows' | 'macos' | 'linux'
+  );
 
   const currentPlatform = platforms[selectedPlatform];
 
@@ -102,7 +117,7 @@ export default function DownloadPage() {
               Choisissez votre système d'exploitation
             </h2>
             
-            <div className="grid grid-cols-2 gap-4 mb-8 max-w-md mx-auto">
+            <div className="grid grid-cols-3 gap-4 mb-8">
               {(Object.keys(platforms) as Array<keyof typeof platforms>).map((platform) => (
                 <button
                   key={platform}
@@ -176,7 +191,7 @@ export default function DownloadPage() {
           {/* Requirements */}
           <div className="bg-white rounded-2xl shadow-lg p-8">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Configuration requise</h2>
-            <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-8">
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <span className="text-2xl">🪟</span> Windows
@@ -208,6 +223,25 @@ export default function DownloadPage() {
                   <li className="flex items-center gap-2">
                     <CheckCircleIcon className="w-4 h-4 text-green-500" />
                     Intel ou Apple Silicon (M1/M2/M3)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                    100 MB d'espace disque
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="text-2xl">🐧</span> Linux
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                    Ubuntu 20.04+, Debian 10+, Fedora 33+
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                    4 GB de RAM minimum
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircleIcon className="w-4 h-4 text-green-500" />
