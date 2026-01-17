@@ -15,8 +15,14 @@ import type {
 // AXIOS INSTANCE CONFIGURATION
 // ============================================
 
-// API Base URL - Use environment variable in production, proxy in development
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Check if running inside Tauri
+const isTauriApp = typeof window !== 'undefined' && '__TAURI__' in window;
+
+// API Base URL - Use full URL in Tauri, proxy in browser
+// In Tauri, we need the full backend URL since there's no proxy
+const API_BASE_URL = isTauriApp 
+  ? 'https://detaxerdc.onrender.com/api'
+  : (import.meta.env.VITE_API_URL || '/api');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -24,7 +30,8 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 30000, // 30 seconds timeout
-  withCredentials: true, // Important for CORS with credentials
+  // withCredentials causes CORS issues in Tauri, only enable in browser
+  withCredentials: !isTauriApp,
 });
 
 // Request interceptor to add auth token
