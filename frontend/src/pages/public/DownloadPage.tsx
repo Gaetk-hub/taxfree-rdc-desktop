@@ -32,7 +32,7 @@ const platforms = {
     description: 'Windows 10/11 (64-bit)',
     fileName: 'Tax.Free.RDC_x64-setup.exe',
     size: '~4 MB',
-    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.2_x64-setup.exe`,
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.3_x64-setup.exe`,
   },
   macos: {
     name: 'macOS',
@@ -40,7 +40,7 @@ const platforms = {
     description: 'macOS 10.15+ (Intel & Apple Silicon)',
     fileName: 'Tax.Free.RDC_aarch64.dmg',
     size: '~5 MB',
-    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.2_aarch64.dmg`,
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.3_aarch64.dmg`,
   },
   linux: {
     name: 'Linux',
@@ -48,7 +48,7 @@ const platforms = {
     description: 'Ubuntu, Debian, Fedora (64-bit)',
     fileName: 'Tax.Free.RDC_amd64.AppImage',
     size: '~80 MB',
-    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.2_amd64.AppImage`,
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.3_amd64.AppImage`,
   },
 };
 
