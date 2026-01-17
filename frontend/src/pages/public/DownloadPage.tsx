@@ -21,8 +21,8 @@ const getPlatform = (): 'windows' | 'macos' | 'linux' | 'unknown' => {
   return 'unknown';
 };
 
-// GitHub Release base URL
-const GITHUB_RELEASE_URL = 'https://github.com/Gaetk-hub/taxfree-rdc-desktop/releases/download/v1.0.0';
+// GitHub Release base URL - using latest version
+const GITHUB_RELEASE_URL = 'https://github.com/Gaetk-hub/taxfree-rdc-desktop/releases/latest/download';
 
 // Platform info with direct download links
 const platforms = {
@@ -30,25 +30,25 @@ const platforms = {
     name: 'Windows',
     icon: '🪟',
     description: 'Windows 10/11 (64-bit)',
-    fileName: 'Tax.Free.RDC_1.0.0_x64-setup.exe',
-    size: '4.28 MB',
-    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.0_x64-setup.exe`,
+    fileName: 'Tax.Free.RDC_x64-setup.exe',
+    size: '~4 MB',
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.2_x64-setup.exe`,
   },
   macos: {
     name: 'macOS',
     icon: '🍎',
     description: 'macOS 10.15+ (Intel & Apple Silicon)',
-    fileName: 'Tax.Free.RDC_1.0.0_aarch64.dmg',
-    size: '5 MB',
-    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.0_aarch64.dmg`,
+    fileName: 'Tax.Free.RDC_aarch64.dmg',
+    size: '~5 MB',
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.2_aarch64.dmg`,
   },
   linux: {
     name: 'Linux',
     icon: '🐧',
     description: 'Ubuntu, Debian, Fedora (64-bit)',
-    fileName: 'Tax.Free.RDC_1.0.0_amd64.AppImage',
-    size: '79.2 MB',
-    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.0_amd64.AppImage`,
+    fileName: 'Tax.Free.RDC_amd64.AppImage',
+    size: '~80 MB',
+    downloadUrl: `${GITHUB_RELEASE_URL}/Tax.Free.RDC_1.0.2_amd64.AppImage`,
   },
 };
 
