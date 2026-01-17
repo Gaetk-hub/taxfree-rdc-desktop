@@ -461,15 +461,6 @@ export default function LoginPage() {
             </Link>
           </div>
           
-          {/* Back to Home */}
-          <div className="mt-4 text-center">
-            <Link to="/" className="inline-flex items-center text-gray-500 hover:text-blue-600 text-sm font-medium transition-colors group">
-              <svg className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Retour à l'accueil
-            </Link>
-          </div>
         </div>
       </div>
       
