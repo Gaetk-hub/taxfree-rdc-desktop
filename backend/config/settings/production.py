@@ -61,7 +61,27 @@ CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 # CORS
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if origin.strip()]
+
+# Add Tauri desktop app origins
+CORS_ALLOWED_ORIGINS.extend([
+    'tauri://localhost',
+    'https://tauri.localhost',
+])
+
 CORS_ALLOW_CREDENTIALS = True
+
+# Allow all headers for Tauri compatibility
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Use S3 storage in production (optional - can use local storage on Render)
 USE_S3_STORAGE = os.getenv('USE_S3_STORAGE', 'false').lower() == 'true'
