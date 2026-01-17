@@ -1,0 +1,84 @@
+name: Build Tauri App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            name: 'macOS-ARM'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+            name: 'macOS-Intel'
+          - platform: 'ubuntu-22.04'
+            args: ''
+            name: 'Linux'
+          - platform: 'windows-latest'
+            args: ''
+            name: 'Windows'
+
+    runs-on: ${{ matrix.platform }}
+    name: Build (${{ matrix.name }})
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Install dependencies (Ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: frontend
+          args: ${{ matrix.args }}
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Tax Free RDC ${{ github.ref_name }}'
+          releaseBody: |
+            ## Tax Free RDC ${{ github.ref_name }}
+            
+            ### Téléchargements
+            
+            Choisissez le fichier correspondant à votre système d'exploitation :
+            
+            - **Windows** : `.exe` (installateur) ou `.msi`
+            - **macOS Intel** : `_x64.dmg`
+            - **macOS Apple Silicon (M1/M2/M3)** : `_aarch64.dmg`
+            - **Linux** : `.AppImage` ou `.deb`
+            
+            ### Installation
+            
+            1. Téléchargez le fichier correspondant à votre système
+            2. Exécutez l'installateur
+            3. Suivez les instructions à l'écran
+          releaseDraft: false
+          prerelease: false

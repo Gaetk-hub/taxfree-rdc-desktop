@@ -131,6 +131,8 @@ function HeroSection() {
                 key={index}
                 src={img} 
                 alt={`Hero ${index + 1}`}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
                 className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 ${
                   index === currentImage ? 'opacity-100' : 'opacity-0'
                 }`}
