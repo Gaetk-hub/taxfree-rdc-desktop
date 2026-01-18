@@ -303,7 +303,6 @@ class TaxFreeEmailService:
         """Generate QR code as base64 string."""
         try:
             import qrcode
-            from qrcode.image.pure import PyPNGImage
             
             qr = qrcode.QRCode(
                 version=1,
@@ -320,6 +319,34 @@ class TaxFreeEmailService:
             buffer.seek(0)
             
             return base64.b64encode(buffer.getvalue()).decode('utf-8')
+        except ImportError:
+            logger.warning("qrcode library not installed, skipping QR code generation")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to generate QR code: {str(e)}")
+            return None
+    
+    @classmethod
+    def generate_qr_code_bytes(cls, data):
+        """Generate QR code as bytes for email attachment."""
+        try:
+            import qrcode
+            
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_M,
+                box_size=10,
+                border=2,
+            )
+            qr.add_data(data)
+            qr.make(fit=True)
+            
+            img = qr.make_image(fill_color="black", back_color="white")
+            buffer = io.BytesIO()
+            img.save(buffer, format='PNG')
+            buffer.seek(0)
+            
+            return buffer.getvalue()
         except ImportError:
             logger.warning("qrcode library not installed, skipping QR code generation")
             return None
@@ -448,13 +475,14 @@ class TaxFreeEmailService:
             
             # Generate QR code data
             qr_data = f"{form.qr_payload}|{form.qr_signature}" if form.qr_payload and form.qr_signature else form.form_number
-            qr_base64 = cls.generate_qr_code_base64(qr_data)
+            qr_image_data = cls.generate_qr_code_bytes(qr_data)
             qr_html = ""
-            if qr_base64:
+            if qr_image_data:
+                # Use CID (Content-ID) for inline image - Gmail supports this
                 qr_html = f'''
                 <div class="qr-section">
                     <div class="qr-code">
-                        <img src="data:image/png;base64,{qr_base64}" alt="QR Code" />
+                        <img src="cid:qrcode" alt="QR Code" />
                     </div>
                     <p class="qr-label">Scannez ce code à la douane</p>
                 </div>
@@ -621,6 +649,8 @@ Système de détaxe de la République Démocratique du Congo
             """
             
             # Create email
+            from email.mime.image import MIMEImage
+            
             email = EmailMultiAlternatives(
                 subject=subject,
                 body=plain_message,
@@ -628,6 +658,14 @@ Système de détaxe de la République Démocratique du Congo
                 to=[form.traveler.email],
             )
             email.attach_alternative(html_message, "text/html")
+            
+            # Attach QR code as inline image with CID
+            if qr_image_data:
+                qr_image = MIMEImage(qr_image_data, _subtype='png')
+                qr_image.add_header('Content-ID', '<qrcode>')
+                qr_image.add_header('Content-Disposition', 'inline', filename='qrcode.png')
+                email.attach(qr_image)
+                logger.info(f"QR code attached for form {form.form_number}")
             
             # Attach professional PDF
             from services.pdf_service import TaxFreePDFService
