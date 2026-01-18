@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { merchantsApi } from '../../services/api';
+import { merchantsApi, documentRequestApi } from '../../services/api';
 import FadeIn from '../../components/ui/FadeIn';
 import toast from 'react-hot-toast';
 import usePermissions from '../../hooks/usePermissions';
@@ -198,7 +198,8 @@ export default function RegistrationRequestDetailPage() {
   const [reviewAction, setReviewAction] = useState<'accept' | 'request_more' | 'reject'>('accept');
   const [reviewNotes, setReviewNotes] = useState('');
   const [reviewDocsList, setReviewDocsList] = useState('');
-  const [previewDoc, setPreviewDoc] = useState<{ name: string; url: string; type: string } | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{ id: string; name: string; url: string; type: string } | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   const toggleExpand = (id: string) => {
@@ -211,6 +212,32 @@ export default function RegistrationRequestDetailPage() {
       }
       return newSet;
     });
+  };
+
+  // Function to download document via backend proxy (bypasses Cloudinary PDF restrictions)
+  const handleDownloadDocument = async (docId: string, docName: string) => {
+    setIsDownloading(true);
+    try {
+      const response = await documentRequestApi.downloadDocument(docId);
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = docName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Téléchargement réussi');
+    } catch (error) {
+      toast.error('Erreur lors du téléchargement. Essayez le lien direct.');
+      // Fallback to direct URL
+      if (previewDoc?.url) {
+        window.open(previewDoc.url, '_blank');
+      }
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const { data, isLoading, error } = useQuery({
@@ -400,7 +427,7 @@ export default function RegistrationRequestDetailPage() {
               <div key={doc.id} className="flex items-center gap-2 text-sm">
                 <PaperClipIcon className="w-4 h-4 text-gray-400" />
                 <button
-                  onClick={() => setPreviewDoc({ name: doc.name, url: doc.file_path, type: doc.file_type })}
+                  onClick={() => setPreviewDoc({ id: doc.id, name: doc.name, url: doc.file_path, type: doc.file_type })}
                   className="text-blue-600 hover:underline hover:text-blue-800"
                 >
                   {doc.name}
@@ -1174,21 +1201,30 @@ export default function RegistrationRequestDetailPage() {
                       Veuillez télécharger le document pour le consulter.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <a
-                        href={previewDoc.url}
-                        download={previewDoc.name}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg"
+                      <button
+                        onClick={() => handleDownloadDocument(previewDoc.id, previewDoc.name)}
+                        disabled={isDownloading}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-50"
                       >
-                        <ArrowPathIcon className="w-5 h-5" />
-                        Télécharger le PDF
-                      </a>
+                        {isDownloading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
+                            Téléchargement...
+                          </>
+                        ) : (
+                          <>
+                            <ArrowPathIcon className="w-5 h-5" />
+                            Télécharger le PDF
+                          </>
+                        )}
+                      </button>
                       <a
                         href={previewDoc.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
                       >
-                        Ouvrir dans un nouvel onglet
+                        Lien direct (si proxy échoue)
                       </a>
                     </div>
                   </div>

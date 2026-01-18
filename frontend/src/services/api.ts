@@ -355,6 +355,10 @@ export const documentRequestApi = {
   // Submit documents (public)
   submitDocuments: (token: string, data: { response_message: string; documents?: Array<{ name: string; file_path: string; file_type?: string; file_size?: number }> }) => 
     api.post(`/auth/document-request/${token}/submit/`, data),
+  
+  // Download document via proxy (bypasses Cloudinary PDF restrictions)
+  downloadDocument: (documentId: string) => 
+    api.get(`/auth/documents/${documentId}/download/`, { responseType: 'blob' }),
 };
 
 // ============================================
