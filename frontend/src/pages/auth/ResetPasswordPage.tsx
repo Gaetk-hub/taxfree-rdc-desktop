@@ -43,30 +43,38 @@ export default function ResetPasswordPage() {
   const passwordValidation = validatePassword(password);
   const passwordsMatch = password === passwordConfirm && passwordConfirm.length > 0;
 
+  // Force reload on first access via full page refresh
+  useEffect(() => {
+    const reloadKey = `reset-password-${token}`;
+    const hasReloaded = sessionStorage.getItem(reloadKey);
+    
+    if (!hasReloaded && token) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.href = window.location.href;
+      return;
+    }
+  }, [token]);
+
   // Validate token on mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const validateToken = async () => {
-        if (!token) {
-          setTokenError('Lien de réinitialisation invalide.');
-          setIsLoading(false);
-          return;
-        }
-        
-        try {
-          const response = await passwordResetApi.validateToken(token);
-          setTokenInfo(response.data);
-        } catch (err: unknown) {
-          setTokenError(getErrorMessage(err));
-        } finally {
-          setIsLoading(false);
-        }
-      };
+    const validateToken = async () => {
+      if (!token) {
+        setTokenError('Lien de réinitialisation invalide.');
+        setIsLoading(false);
+        return;
+      }
       
-      validateToken();
-    }, 100);
+      try {
+        const response = await passwordResetApi.validateToken(token);
+        setTokenInfo(response.data);
+      } catch (err: unknown) {
+        setTokenError(getErrorMessage(err));
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    return () => clearTimeout(timer);
+    validateToken();
   }, [token]);
 
   const onSubmit = async (data: ResetForm) => {

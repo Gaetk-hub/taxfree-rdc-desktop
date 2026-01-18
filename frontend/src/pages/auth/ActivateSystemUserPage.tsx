@@ -33,12 +33,20 @@ export default function ActivateSystemUserPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Force reload on first access via full page refresh
   useEffect(() => {
-    const timer = setTimeout(() => {
-      validateToken();
-    }, 100);
+    const reloadKey = `activate-system-user-${token}`;
+    const hasReloaded = sessionStorage.getItem(reloadKey);
     
-    return () => clearTimeout(timer);
+    if (!hasReloaded && token) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.href = window.location.href;
+      return;
+    }
+  }, [token]);
+
+  useEffect(() => {
+    validateToken();
   }, [token]);
 
   const validateToken = async () => {

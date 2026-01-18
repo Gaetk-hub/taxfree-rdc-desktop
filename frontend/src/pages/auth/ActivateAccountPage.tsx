@@ -37,31 +37,39 @@ export default function ActivateAccountPage() {
   const passwordValidation = validatePassword(password);
   const passwordsMatch = password === passwordConfirm && passwordConfirm.length > 0;
 
+  // Force reload on first access via full page refresh
+  useEffect(() => {
+    const reloadKey = `activate-account-${token}`;
+    const hasReloaded = sessionStorage.getItem(reloadKey);
+    
+    if (!hasReloaded && token) {
+      sessionStorage.setItem(reloadKey, 'true');
+      // Use href assignment for full page reload
+      window.location.href = window.location.href;
+      return;
+    }
+  }, [token]);
+
   // Validate token on mount
   useEffect(() => {
-    // Small delay to ensure component is fully mounted
-    const timer = setTimeout(() => {
-      const validateToken = async () => {
-        if (!token) {
-          setTokenError('Lien d\'activation invalide.');
-          setIsLoading(false);
-          return;
-        }
-        
-        try {
-          const response = await authApi.validateToken(token);
-          setTokenInfo(response.data);
-        } catch (err: unknown) {
-          setTokenError(getErrorMessage(err));
-        } finally {
-          setIsLoading(false);
-        }
-      };
+    const validateToken = async () => {
+      if (!token) {
+        setTokenError('Lien d\'activation invalide.');
+        setIsLoading(false);
+        return;
+      }
       
-      validateToken();
-    }, 100);
+      try {
+        const response = await authApi.validateToken(token);
+        setTokenInfo(response.data);
+      } catch (err: unknown) {
+        setTokenError(getErrorMessage(err));
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    return () => clearTimeout(timer);
+    validateToken();
   }, [token]);
 
   const onSubmit = async (data: ActivationForm) => {
