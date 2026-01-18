@@ -33,14 +33,16 @@ export default function ActivateSystemUserPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // Force reload on first access via full page refresh
+  // Force reload on first access via full page refresh with cache busting
   useEffect(() => {
-    const reloadKey = `activate-system-user-${token}`;
-    const hasReloaded = sessionStorage.getItem(reloadKey);
+    const reloadKey = `activate-system-user-loaded-${token}`;
+    const hasLoaded = sessionStorage.getItem(reloadKey);
     
-    if (!hasReloaded && token) {
+    if (!hasLoaded && token) {
       sessionStorage.setItem(reloadKey, 'true');
-      window.location.href = window.location.href;
+      const url = new URL(window.location.href);
+      url.searchParams.set('_t', Date.now().toString());
+      window.location.replace(url.toString());
       return;
     }
   }, [token]);

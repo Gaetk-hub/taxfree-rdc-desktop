@@ -43,14 +43,16 @@ export default function ResetPasswordPage() {
   const passwordValidation = validatePassword(password);
   const passwordsMatch = password === passwordConfirm && passwordConfirm.length > 0;
 
-  // Force reload on first access via full page refresh
+  // Force reload on first access via full page refresh with cache busting
   useEffect(() => {
-    const reloadKey = `reset-password-${token}`;
-    const hasReloaded = sessionStorage.getItem(reloadKey);
+    const reloadKey = `reset-password-loaded-${token}`;
+    const hasLoaded = sessionStorage.getItem(reloadKey);
     
-    if (!hasReloaded && token) {
+    if (!hasLoaded && token) {
       sessionStorage.setItem(reloadKey, 'true');
-      window.location.href = window.location.href;
+      const url = new URL(window.location.href);
+      url.searchParams.set('_t', Date.now().toString());
+      window.location.replace(url.toString());
       return;
     }
   }, [token]);

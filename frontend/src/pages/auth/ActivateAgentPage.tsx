@@ -41,14 +41,16 @@ export default function ActivateAgentPage() {
 
   const password = watch('password');
 
-  // Force reload on first access via full page refresh
+  // Force reload on first access via full page refresh with cache busting
   useEffect(() => {
-    const reloadKey = `activate-agent-${token}`;
-    const hasReloaded = sessionStorage.getItem(reloadKey);
+    const reloadKey = `activate-agent-loaded-${token}`;
+    const hasLoaded = sessionStorage.getItem(reloadKey);
     
-    if (!hasReloaded && token) {
+    if (!hasLoaded && token) {
       sessionStorage.setItem(reloadKey, 'true');
-      window.location.href = window.location.href;
+      const url = new URL(window.location.href);
+      url.searchParams.set('_t', Date.now().toString());
+      window.location.replace(url.toString());
       return;
     }
   }, [token]);

@@ -37,15 +37,17 @@ export default function ActivateAccountPage() {
   const passwordValidation = validatePassword(password);
   const passwordsMatch = password === passwordConfirm && passwordConfirm.length > 0;
 
-  // Force reload on first access via full page refresh
+  // Force reload on first access via full page refresh with cache busting
   useEffect(() => {
-    const reloadKey = `activate-account-${token}`;
-    const hasReloaded = sessionStorage.getItem(reloadKey);
+    const reloadKey = `activate-account-loaded-${token}`;
+    const hasLoaded = sessionStorage.getItem(reloadKey);
     
-    if (!hasReloaded && token) {
+    if (!hasLoaded && token) {
       sessionStorage.setItem(reloadKey, 'true');
-      // Use href assignment for full page reload
-      window.location.href = window.location.href;
+      // Add timestamp to force fresh load
+      const url = new URL(window.location.href);
+      url.searchParams.set('_t', Date.now().toString());
+      window.location.replace(url.toString());
       return;
     }
   }, [token]);
