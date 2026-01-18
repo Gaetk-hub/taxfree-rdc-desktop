@@ -43,45 +43,37 @@ export default function CompleteRegistrationPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
-  // Force page reload on first access to ensure fresh state
   useEffect(() => {
-    const reloadKey = `complete-registration-${token}`;
-    const hasReloaded = sessionStorage.getItem(reloadKey);
-    
-    if (!hasReloaded && token) {
-      sessionStorage.setItem(reloadKey, 'true');
-      window.location.reload();
-      return;
-    }
-  }, [token]);
-
-  useEffect(() => {
-    const validateToken = async () => {
-      if (!token) {
-        setError('Token manquant dans l\'URL.');
-        setIsInitialized(true);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await documentRequestApi.validateToken(token);
-        if (response.data && response.data.valid) {
-          setDocumentRequest(response.data.document_request);
-        } else {
-          setError('Ce lien n\'est plus valide.');
+    const timer = setTimeout(() => {
+      const validateToken = async () => {
+        if (!token) {
+          setError('Token manquant dans l\'URL.');
+          setIsInitialized(true);
+          return;
         }
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.detail || err.message || 'Lien invalide ou expiré.';
-        setError(errorMessage);
-      } finally {
-        setIsLoading(false);
-        setIsInitialized(true);
-      }
-    };
 
-    validateToken();
+        try {
+          setIsLoading(true);
+          setError(null);
+          const response = await documentRequestApi.validateToken(token);
+          if (response.data && response.data.valid) {
+            setDocumentRequest(response.data.document_request);
+          } else {
+            setError('Ce lien n\'est plus valide.');
+          }
+        } catch (err: any) {
+          const errorMessage = err.response?.data?.detail || err.message || 'Lien invalide ou expiré.';
+          setError(errorMessage);
+        } finally {
+          setIsLoading(false);
+          setIsInitialized(true);
+        }
+      };
+
+      validateToken();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [token]);
 
   const submitMutation = useMutation({

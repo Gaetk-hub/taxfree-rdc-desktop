@@ -41,33 +41,25 @@ export default function ActivateAgentPage() {
 
   const password = watch('password');
 
-  // Force reload on first access to fix blank page issue
   useEffect(() => {
-    const reloadKey = `activate-agent-${token}`;
-    const hasReloaded = sessionStorage.getItem(reloadKey);
-    
-    if (!hasReloaded && token) {
-      sessionStorage.setItem(reloadKey, 'true');
-      window.location.reload();
-      return;
-    }
-  }, [token]);
+    const timer = setTimeout(() => {
+      const fetchInvitation = async () => {
+        try {
+          const response = await api.get(`/customs/activate/${token}/`);
+          setInvitationInfo(response.data);
+        } catch (err: any) {
+          setError(err.response?.data?.detail || 'Invitation invalide ou expirée');
+        } finally {
+          setLoading(false);
+        }
+      };
 
-  useEffect(() => {
-    const fetchInvitation = async () => {
-      try {
-        const response = await api.get(`/customs/activate/${token}/`);
-        setInvitationInfo(response.data);
-      } catch (err: any) {
-        setError(err.response?.data?.detail || 'Invitation invalide ou expirée');
-      } finally {
-        setLoading(false);
+      if (token) {
+        fetchInvitation();
       }
-    };
-
-    if (token) {
-      fetchInvitation();
-    }
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [token]);
 
   const onSubmit = async (data: { password: string; password_confirm: string }) => {
