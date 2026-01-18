@@ -84,6 +84,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   
   // Track expanded sections
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const [profileImageError, setProfileImageError] = useState(false);
+
+  // Reset image error when profile_photo changes
+  useEffect(() => {
+    setProfileImageError(false);
+  }, [user?.profile_photo]);
 
   // Auto-expand section based on current URL
   useEffect(() => {
@@ -649,18 +655,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="border-t border-gray-100 p-3">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-sm font-medium shadow-sm overflow-hidden">
-            {user?.profile_photo ? (
+            {user?.profile_photo && !profileImageError ? (
               <img 
                 src={user.profile_photo} 
                 alt="Profile" 
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
+                onError={() => setProfileImageError(true)}
               />
-            ) : null}
-            <span className={user?.profile_photo ? 'hidden' : ''}>{user?.first_name?.[0]}{user?.last_name?.[0]}</span>
+            ) : (
+              <span>{user?.first_name?.[0]}{user?.last_name?.[0]}</span>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">

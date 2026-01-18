@@ -61,6 +61,7 @@ export default function ProfilePage() {
       }
       queryClient.invalidateQueries({ queryKey: ['user'] });
       setPreviewUrl(null);
+      setImageError(false);
     },
     onError: () => {
       toast.error('Erreur lors de la mise à jour de la photo');

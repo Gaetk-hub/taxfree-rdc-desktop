@@ -50,6 +50,12 @@ export default function Navbar({ onMenuClick, onLogout }: NavbarProps) {
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const [profileImageError, setProfileImageError] = useState(false);
+
+  // Reset image error when profile_photo changes
+  useEffect(() => {
+    setProfileImageError(false);
+  }, [user?.profile_photo]);
 
   // Fetch notifications from backend
   const { data: notificationsData } = useQuery({
@@ -333,20 +339,18 @@ export default function Navbar({ onMenuClick, onLogout }: NavbarProps) {
               className="flex items-center gap-2 p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center ring-2 ring-white shadow-sm overflow-hidden">
-                {user?.profile_photo ? (
+                {user?.profile_photo && !profileImageError ? (
                   <img 
                     src={user.profile_photo} 
                     alt="Profile" 
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                    }}
+                    onError={() => setProfileImageError(true)}
                   />
-                ) : null}
-                <span className={`text-white text-sm font-medium ${user?.profile_photo ? 'hidden' : ''}`}>
-                  {user?.first_name?.[0]}{user?.last_name?.[0]}
-                </span>
+                ) : (
+                  <span className="text-white text-sm font-medium">
+                    {user?.first_name?.[0]}{user?.last_name?.[0]}
+                  </span>
+                )}
               </div>
               <span className="hidden lg:block text-sm font-medium text-gray-700">
                 {(user?.role === 'MERCHANT' || user?.role === 'MERCHANT_EMPLOYEE') && user?.merchant_name 
