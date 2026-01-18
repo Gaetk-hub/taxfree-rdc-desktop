@@ -41,6 +41,18 @@ export default function ActivateAgentPage() {
 
   const password = watch('password');
 
+  // Force reload on first access to fix blank page issue
+  useEffect(() => {
+    const reloadKey = `activate-agent-${token}`;
+    const hasReloaded = sessionStorage.getItem(reloadKey);
+    
+    if (!hasReloaded && token) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.reload();
+      return;
+    }
+  }, [token]);
+
   useEffect(() => {
     const fetchInvitation = async () => {
       try {

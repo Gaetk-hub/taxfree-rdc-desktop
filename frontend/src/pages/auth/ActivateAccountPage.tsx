@@ -37,6 +37,18 @@ export default function ActivateAccountPage() {
   const passwordValidation = validatePassword(password);
   const passwordsMatch = password === passwordConfirm && passwordConfirm.length > 0;
 
+  // Force reload on first access to fix blank page issue
+  useEffect(() => {
+    const reloadKey = `activate-account-${token}`;
+    const hasReloaded = sessionStorage.getItem(reloadKey);
+    
+    if (!hasReloaded && token) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.reload();
+      return;
+    }
+  }, [token]);
+
   // Validate token on mount
   useEffect(() => {
     const validateToken = async () => {

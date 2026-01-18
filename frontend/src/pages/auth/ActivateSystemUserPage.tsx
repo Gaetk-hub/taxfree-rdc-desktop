@@ -33,6 +33,18 @@ export default function ActivateSystemUserPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Force reload on first access to fix blank page issue
+  useEffect(() => {
+    const reloadKey = `activate-system-user-${token}`;
+    const hasReloaded = sessionStorage.getItem(reloadKey);
+    
+    if (!hasReloaded && token) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.reload();
+      return;
+    }
+  }, [token]);
+
   useEffect(() => {
     validateToken();
   }, [token]);
