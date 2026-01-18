@@ -863,7 +863,10 @@ class MerchantTravelersView(APIView):
             return Response({'detail': 'Merchant not found'}, status=404)
 
         from apps.taxfree.models import TaxFreeForm, Traveler
-        from django.db.models import Count, Sum, Max, Min
+        from django.db.models import Count, Sum, Max, Min, Q
+
+        # Get search parameter
+        search = request.query_params.get('search', '').strip()
 
         # Get all travelers who have forms with this merchant
         traveler_ids = TaxFreeForm.objects.filter(
@@ -875,6 +878,20 @@ class MerchantTravelersView(APIView):
             traveler = Traveler.objects.filter(id=traveler_id).first()
             if not traveler:
                 continue
+            
+            # Apply search filter
+            if search:
+                search_lower = search.lower()
+                name = f"{traveler.first_name} {traveler.last_name}".lower()
+                passport = (traveler.passport_number_last4 or '').lower()
+                nationality = (traveler.nationality or '').lower()
+                email = (traveler.email or '').lower()
+                
+                if not (search_lower in name or 
+                        search_lower in passport or 
+                        search_lower in nationality or
+                        search_lower in email):
+                    continue
 
             # Get forms for this traveler at this merchant
             forms = TaxFreeForm.objects.filter(
