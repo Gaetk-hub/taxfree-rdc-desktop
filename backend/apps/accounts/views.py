@@ -823,11 +823,10 @@ class MerchantRegistrationRequestViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Invalidate old tokens
+        # Delete old tokens (unique constraint on registration_request)
         AccountActivationToken.objects.filter(
-            registration_request=registration,
-            is_used=False
-        ).update(is_used=True)
+            registration_request=registration
+        ).delete()
         
         # Create new activation token
         activation_token = AccountActivationToken.objects.create(
