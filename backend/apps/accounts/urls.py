@@ -26,6 +26,7 @@ from .views import (
     ResetPasswordView,
     ValidateMerchantInvitationView,
     AcceptMerchantInvitationView,
+    ProxyDocumentDownloadView,
 )
 from .admin_views import (
     AdminUserViewSet,
@@ -71,6 +72,9 @@ urlpatterns = [
     path('document-request/<str:token>/', ValidateDocumentRequestTokenView.as_view(), name='validate-document-request'),
     path('document-request/<str:token>/upload/', UploadDocumentView.as_view(), name='upload-document'),
     path('document-request/<str:token>/submit/', SubmitDocumentsView.as_view(), name='submit-documents'),
+    
+    # Document download proxy (bypasses Cloudinary PDF restrictions)
+    path('documents/<uuid:document_id>/download/', ProxyDocumentDownloadView.as_view(), name='proxy-document-download'),
     
     # Token refresh
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),

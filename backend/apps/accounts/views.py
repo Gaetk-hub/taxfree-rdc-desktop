@@ -1544,3 +1544,109 @@ class AcceptMerchantInvitationView(APIView):
             'refresh': str(refresh),
             'user': UserSerializer(user).data
         })
+
+
+class ProxyDocumentDownloadView(APIView):
+    """
+    Proxy endpoint to download documents from Cloudinary.
+    This bypasses Cloudinary's PDF delivery restrictions on free plans.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, document_id):
+        import requests as http_requests
+        from django.http import HttpResponse
+        import os
+        
+        try:
+            document = RegistrationDocument.objects.get(id=document_id)
+        except RegistrationDocument.DoesNotExist:
+            return Response(
+                {'detail': 'Document non trouvé.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        file_url = document.file_path
+        
+        if not file_url:
+            return Response(
+                {'detail': 'URL du document non disponible.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        try:
+            if 'cloudinary.com' in file_url:
+                cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME')
+                api_key = os.getenv('CLOUDINARY_API_KEY')
+                api_secret = os.getenv('CLOUDINARY_API_SECRET')
+                
+                # Try direct download first
+                response = http_requests.get(file_url, timeout=30)
+                
+                if response.status_code == 401 and api_key and api_secret:
+                    # Use Cloudinary Admin API to get the resource
+                    import cloudinary
+                    import cloudinary.api
+                    
+                    # Parse public_id from URL
+                    url_parts = file_url.split('/')
+                    version_idx = None
+                    for i, part in enumerate(url_parts):
+                        if part.startswith('v') and len(part) > 1 and part[1:].isdigit():
+                            version_idx = i
+                            break
+                    
+                    if version_idx:
+                        public_id_with_ext = '/'.join(url_parts[version_idx+1:])
+                        public_id = public_id_with_ext.rsplit('.', 1)[0]
+                        
+                        # Determine resource type
+                        resource_type = 'image'
+                        if '/raw/' in file_url:
+                            resource_type = 'raw'
+                        
+                        # Get resource info from Cloudinary
+                        try:
+                            resource = cloudinary.api.resource(public_id, resource_type=resource_type)
+                            # Try to get the file using authenticated URL
+                            import hashlib
+                            import time
+                            
+                            timestamp = int(time.time())
+                            to_sign = f"timestamp={timestamp}{api_secret}"
+                            signature = hashlib.sha1(to_sign.encode()).hexdigest()
+                            
+                            # Download using admin credentials
+                            auth_url = f"https://api.cloudinary.com/v1_1/{cloud_name}/{resource_type}/download?public_id={public_id}&api_key={api_key}&timestamp={timestamp}&signature={signature}"
+                            response = http_requests.get(auth_url, timeout=30)
+                        except Exception:
+                            pass
+                
+                if response.status_code == 200:
+                    content_type = document.file_type or response.headers.get('Content-Type', 'application/octet-stream')
+                    http_response = HttpResponse(response.content, content_type=content_type)
+                    http_response['Content-Disposition'] = f'attachment; filename="{document.name}"'
+                    return http_response
+                else:
+                    return Response(
+                        {'detail': f'Erreur lors du téléchargement: {response.status_code}. Veuillez activer "Allow delivery of PDF and ZIP files" dans les paramètres Cloudinary.'},
+                        status=status.HTTP_502_BAD_GATEWAY
+                    )
+            else:
+                response = http_requests.get(file_url, timeout=30)
+                if response.status_code == 200:
+                    content_type = document.file_type or 'application/octet-stream'
+                    http_response = HttpResponse(response.content, content_type=content_type)
+                    http_response['Content-Disposition'] = f'attachment; filename="{document.name}"'
+                    return http_response
+                else:
+                    return Response(
+                        {'detail': 'Fichier non accessible.'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                    
+        except http_requests.RequestException as e:
+            return Response(
+                {'detail': f'Erreur de téléchargement: {str(e)}'},
+                status=status.HTTP_502_BAD_GATEWAY
+            )
