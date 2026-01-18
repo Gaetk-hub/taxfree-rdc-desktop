@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { navigateTo } from './navigation';
 import type { 
@@ -18,21 +18,145 @@ import type {
 // Check if running inside Tauri
 const isTauriApp = typeof window !== 'undefined' && '__TAURI__' in window;
 
-// API Base URL - Use full URL in Tauri, proxy in browser
-// In Tauri, we need the full backend URL since there's no proxy
-const API_BASE_URL = isTauriApp 
-  ? 'https://detaxerdc.onrender.com/api'
-  : (import.meta.env.VITE_API_URL || '/api');
+// API Base URLs
+const BACKEND_URL = 'https://detaxerdc.onrender.com/api';
+const API_BASE_URL = isTauriApp ? BACKEND_URL : (import.meta.env.VITE_API_URL || '/api');
+
+// ============================================
+// TAURI HTTP CLIENT (bypasses CORS)
+// ============================================
+
+let tauriFetchModule: { fetch: typeof fetch } | null = null;
+let tauriFetchPromise: Promise<{ fetch: typeof fetch }> | null = null;
+
+// Initialize Tauri HTTP client
+if (isTauriApp) {
+  tauriFetchPromise = import('@tauri-apps/plugin-http').then((module) => {
+    tauriFetchModule = module;
+    return module;
+  }).catch((err) => {
+    console.error('[Tauri] HTTP plugin error:', err);
+    throw err;
+  });
+}
+
+// Get Tauri fetch (waits for initialization if needed)
+const getTauriFetch = async (): Promise<typeof fetch> => {
+  if (tauriFetchModule) {
+    return tauriFetchModule.fetch;
+  }
+  if (tauriFetchPromise) {
+    const module = await tauriFetchPromise;
+    return module.fetch;
+  }
+  throw new Error('Tauri HTTP not available');
+};
+
+// Custom adapter for Tauri
+const tauriAdapter = async (config: AxiosRequestConfig): Promise<AxiosResponse> => {
+  const tauriFetch = await getTauriFetch();
+
+  const url = config.baseURL 
+    ? `${config.baseURL}${config.url}` 
+    : config.url || '';
+  
+  // Build headers
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-Tauri-App': 'TaxFreeRDC/1.0',
+  };
+  
+  if (config.headers) {
+    Object.entries(config.headers).forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        headers[key] = value;
+      }
+    });
+  }
+
+  // Handle FormData
+  let body: BodyInit | undefined;
+  if (config.data instanceof FormData) {
+    body = config.data;
+    delete headers['Content-Type']; // Let browser set it for FormData
+  } else if (config.data) {
+    // Check if data is already a string (already serialized)
+    body = typeof config.data === 'string' ? config.data : JSON.stringify(config.data);
+  }
+
+  // Build URL with params
+  let finalUrl = url;
+  if (config.params) {
+    const params = new URLSearchParams();
+    Object.entries(config.params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, String(value));
+      }
+    });
+    const paramString = params.toString();
+    if (paramString) {
+      finalUrl += (url.includes('?') ? '&' : '?') + paramString;
+    }
+  }
+
+  const response = await tauriFetch(finalUrl, {
+    method: config.method?.toUpperCase() || 'GET',
+    headers,
+    body,
+  });
+
+  // Parse response
+  let data;
+  const contentType = response.headers.get('content-type');
+  
+  if (config.responseType === 'blob') {
+    data = await response.blob();
+  } else if (contentType?.includes('application/json')) {
+    data = await response.json();
+  } else {
+    data = await response.text();
+  }
+
+  // Throw error for non-2xx responses (like axios does)
+  if (!response.ok) {
+    const error = new Error(`Request failed with status ${response.status}`) as Error & { 
+      response: AxiosResponse;
+      config: AxiosRequestConfig;
+    };
+    error.response = {
+      data,
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+      config,
+    } as AxiosResponse;
+    error.config = config;
+    throw error;
+  }
+
+  return {
+    data,
+    status: response.status,
+    statusText: response.statusText,
+    headers: Object.fromEntries(response.headers.entries()),
+    config,
+  } as AxiosResponse;
+};
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 seconds timeout
-  // withCredentials causes CORS issues in Tauri, only enable in browser
+  timeout: 30000,
   withCredentials: !isTauriApp,
 });
+
+// Use Tauri adapter when in desktop app
+if (isTauriApp) {
+  api.defaults.adapter = tauriAdapter;
+  api.defaults.baseURL = BACKEND_URL;
+}
 
 // Request interceptor to add auth token
 api.interceptors.request.use(

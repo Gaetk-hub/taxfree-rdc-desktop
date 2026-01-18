@@ -66,6 +66,8 @@ CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv('CORS_ALLOWED_ORI
 CORS_ALLOWED_ORIGINS.extend([
     'tauri://localhost',
     'https://tauri.localhost',
+    'http://localhost:5173',  # Tauri dev mode
+    'http://localhost:1420',  # Tauri default dev port
 ])
 
 CORS_ALLOW_CREDENTIALS = True

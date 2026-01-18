@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Tax Free RDC",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "identifier": "cd.taxfree.app",
   "build": {
     "frontendDist": "../dist",
