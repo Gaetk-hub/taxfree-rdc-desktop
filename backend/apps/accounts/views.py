@@ -958,17 +958,37 @@ class UploadDocumentView(APIView):
         
         import os
         from django.conf import settings
-        from django.core.files.storage import default_storage
         
-        # Generate unique filename
-        import uuid
-        ext = os.path.splitext(file.name)[1]
-        filename = f"{uuid.uuid4().hex}{ext}"
-        file_path = f"documents/{doc_request.registration.id}/{filename}"
-        
-        # Save file using default storage (Cloudinary in production)
-        saved_path = default_storage.save(file_path, file)
-        file_url = default_storage.url(saved_path)
+        # Check if Cloudinary is configured
+        if os.getenv('CLOUDINARY_CLOUD_NAME'):
+            import cloudinary
+            import cloudinary.uploader
+            
+            # Determine resource type based on file content type
+            content_type = file.content_type or ''
+            if content_type.startswith('image/'):
+                resource_type = 'image'
+            else:
+                resource_type = 'raw'  # For PDF, documents, etc.
+            
+            # Upload to Cloudinary with correct resource type
+            folder = f"documents/{doc_request.registration.id}"
+            result = cloudinary.uploader.upload(
+                file,
+                folder=folder,
+                resource_type=resource_type,
+                access_mode='public'
+            )
+            file_url = result.get('secure_url', result.get('url'))
+        else:
+            # Local storage fallback for development
+            from django.core.files.storage import default_storage
+            import uuid
+            ext = os.path.splitext(file.name)[1]
+            filename = f"{uuid.uuid4().hex}{ext}"
+            file_path = f"documents/{doc_request.registration.id}/{filename}"
+            saved_path = default_storage.save(file_path, file)
+            file_url = default_storage.url(saved_path)
         
         return Response({
             'name': file.name,
