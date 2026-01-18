@@ -34,7 +34,8 @@ interface UploadedDocument {
 
 export default function CompleteRegistrationPage() {
   const { token } = useParams<{ token: string }>();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [documentRequest, setDocumentRequest] = useState<DocumentRequest | null>(null);
   const [responseMessage, setResponseMessage] = useState('');
@@ -43,31 +44,33 @@ export default function CompleteRegistrationPage() {
   const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
-    if (token) {
-      validateToken();
-    } else {
-      setError('Token manquant dans l\'URL.');
-      setIsLoading(false);
-    }
-  }, [token]);
-
-  const validateToken = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await documentRequestApi.validateToken(token!);
-      if (response.data && response.data.valid) {
-        setDocumentRequest(response.data.document_request);
-      } else {
-        setError('Ce lien n\'est plus valide.');
+    const validateToken = async () => {
+      if (!token) {
+        setError('Token manquant dans l\'URL.');
+        setIsInitialized(true);
+        return;
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Lien invalide ou expiré.';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await documentRequestApi.validateToken(token);
+        if (response.data && response.data.valid) {
+          setDocumentRequest(response.data.document_request);
+        } else {
+          setError('Ce lien n\'est plus valide.');
+        }
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.detail || err.message || 'Lien invalide ou expiré.';
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    };
+
+    validateToken();
+  }, [token]);
 
   const submitMutation = useMutation({
     mutationFn: () => documentRequestApi.submitDocuments(token!, {
@@ -141,7 +144,7 @@ export default function CompleteRegistrationPage() {
     setCurrentStep(step);
   };
 
-  if (isLoading) {
+  if (!isInitialized || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="text-center">
