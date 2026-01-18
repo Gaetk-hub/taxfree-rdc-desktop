@@ -964,36 +964,19 @@ class UploadDocumentView(APIView):
             import cloudinary
             import cloudinary.uploader
             
-            # Upload to Cloudinary - use 'auto' resource_type to let Cloudinary decide
-            # For raw files (PDF, etc.), we need to use type='upload' and generate signed URLs
             folder = f"documents/{doc_request.registration.id}"
             content_type = file.content_type or ''
             
-            if content_type.startswith('image/'):
-                # Images can be uploaded normally
-                result = cloudinary.uploader.upload(
-                    file,
-                    folder=folder,
-                    resource_type='image'
-                )
-                file_url = result.get('secure_url', result.get('url'))
-            else:
-                # For PDF and other files, upload as raw with signed URL
-                result = cloudinary.uploader.upload(
-                    file,
-                    folder=folder,
-                    resource_type='raw',
-                    type='authenticated'
-                )
-                # Generate a long-lived signed URL for access
-                public_id = result.get('public_id')
-                file_url = cloudinary.utils.cloudinary_url(
-                    public_id,
-                    resource_type='raw',
-                    type='authenticated',
-                    sign_url=True,
-                    secure=True
-                )[0]
+            # Use resource_type='auto' to let Cloudinary handle all file types
+            # This allows PDF and other files to be publicly accessible
+            result = cloudinary.uploader.upload(
+                file,
+                folder=folder,
+                resource_type='auto',
+                type='upload',
+                access_mode='public'
+            )
+            file_url = result.get('secure_url', result.get('url'))
         else:
             # Local storage fallback for development
             from django.core.files.storage import default_storage
