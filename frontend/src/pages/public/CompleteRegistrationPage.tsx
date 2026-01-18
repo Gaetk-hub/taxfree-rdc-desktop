@@ -133,8 +133,8 @@ export default function CompleteRegistrationPage() {
   };
 
   const goToStep = (step: number) => {
-    if (step === 2 && !responseMessage.trim()) {
-      setError('Veuillez d\'abord saisir un message de réponse.');
+    if (step === 2 && uploadedDocs.length === 0) {
+      setError('Veuillez d\'abord importer au moins un document.');
       return;
     }
     setError(null);
@@ -243,7 +243,7 @@ export default function CompleteRegistrationPage() {
             }`}
           >
             <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">1</span>
-            <span className="hidden sm:inline">Informations</span>
+            <span className="hidden sm:inline">Documents</span>
           </button>
           <div className="w-8 sm:w-12 h-0.5 bg-gray-200"></div>
           <button
@@ -255,7 +255,7 @@ export default function CompleteRegistrationPage() {
             }`}
           >
             <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">2</span>
-            <span className="hidden sm:inline">Documents</span>
+            <span className="hidden sm:inline">Message</span>
           </button>
           <div className="w-8 sm:w-12 h-0.5 bg-gray-200"></div>
           <div className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-400 border border-gray-200">
@@ -333,44 +333,12 @@ export default function CompleteRegistrationPage() {
             </div>
           )}
 
-          {/* Step 1: Message */}
+          {/* Step 1: Documents */}
           {currentStep === 1 && (
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Message de réponse <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  value={responseMessage}
-                  onChange={(e) => setResponseMessage(e.target.value)}
-                  rows={5}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-400"
-                  placeholder="Expliquez les documents fournis ou apportez des précisions sur votre dossier..."
-                  required
-                />
-                <p className="text-xs text-gray-400 mt-2">
-                  Décrivez les documents que vous fournissez et toute information utile pour le traitement de votre dossier.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => goToStep(2)}
-                className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
-              >
-                Continuer
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          {/* Step 2: Documents */}
-          {currentStep === 2 && (
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Joindre des documents
+                  Joindre des documents <span className="text-red-500">*</span>
                 </label>
                 <div className={`border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all ${
                   isUploading 
@@ -447,6 +415,40 @@ export default function CompleteRegistrationPage() {
                   ))}
                 </div>
               )}
+
+              <button
+                type="button"
+                onClick={() => goToStep(2)}
+                disabled={uploadedDocs.length === 0}
+                className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Continuer
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Step 2: Message */}
+          {currentStep === 2 && (
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message de réponse <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={responseMessage}
+                  onChange={(e) => setResponseMessage(e.target.value)}
+                  rows={5}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-400"
+                  placeholder="Expliquez les documents fournis ou apportez des précisions sur votre dossier..."
+                  required
+                />
+                <p className="text-xs text-gray-400 mt-2">
+                  Décrivez les documents que vous fournissez et toute information utile pour le traitement de votre dossier.
+                </p>
+              </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
