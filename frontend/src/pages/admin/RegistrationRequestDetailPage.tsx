@@ -1164,11 +1164,34 @@ export default function RegistrationRequestDetailPage() {
                     />
                   </div>
                 ) : previewDoc.type === 'application/pdf' || previewDoc.url.match(/\.pdf$/i) ? (
-                  <iframe
-                    src={previewDoc.url}
-                    title={previewDoc.name}
-                    className="w-full h-[70vh] rounded-lg border border-gray-200"
-                  />
+                  <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+                    <div className="w-24 h-24 bg-red-100 rounded-2xl flex items-center justify-center mb-6">
+                      <DocumentTextIcon className="w-12 h-12 text-red-500" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">{previewDoc.name}</h4>
+                    <p className="text-gray-500 mb-6 max-w-md">
+                      Les fichiers PDF ne peuvent pas être prévisualisés directement. 
+                      Veuillez télécharger le document pour le consulter.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <a
+                        href={previewDoc.url}
+                        download={previewDoc.name}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg"
+                      >
+                        <ArrowPathIcon className="w-5 h-5" />
+                        Télécharger le PDF
+                      </a>
+                      <a
+                        href={previewDoc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                      >
+                        Ouvrir dans un nouvel onglet
+                      </a>
+                    </div>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
                     <div className="w-20 h-20 bg-gray-200 rounded-2xl flex items-center justify-center mb-4">
