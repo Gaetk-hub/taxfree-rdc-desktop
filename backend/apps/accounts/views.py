@@ -956,30 +956,23 @@ class UploadDocumentView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Save file to media directory
         import os
         from django.conf import settings
-        
-        upload_dir = os.path.join(settings.MEDIA_ROOT, 'documents', str(doc_request.registration.id))
-        os.makedirs(upload_dir, exist_ok=True)
+        from django.core.files.storage import default_storage
         
         # Generate unique filename
         import uuid
         ext = os.path.splitext(file.name)[1]
         filename = f"{uuid.uuid4().hex}{ext}"
-        file_path = os.path.join(upload_dir, filename)
+        file_path = f"documents/{doc_request.registration.id}/{filename}"
         
-        # Save file
-        with open(file_path, 'wb+') as destination:
-            for chunk in file.chunks():
-                destination.write(chunk)
-        
-        # Return the URL
-        relative_path = f"/media/documents/{doc_request.registration.id}/{filename}"
+        # Save file using default storage (Cloudinary in production)
+        saved_path = default_storage.save(file_path, file)
+        file_url = default_storage.url(saved_path)
         
         return Response({
             'name': file.name,
-            'file_path': relative_path,
+            'file_path': file_url,
             'file_type': file.content_type,
             'file_size': file.size,
         })
