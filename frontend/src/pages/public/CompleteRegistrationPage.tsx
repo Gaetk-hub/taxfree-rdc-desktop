@@ -43,6 +43,18 @@ export default function CompleteRegistrationPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
+  // Force page reload on first access to ensure fresh state
+  useEffect(() => {
+    const reloadKey = `complete-registration-${token}`;
+    const hasReloaded = sessionStorage.getItem(reloadKey);
+    
+    if (!hasReloaded && token) {
+      sessionStorage.setItem(reloadKey, 'true');
+      window.location.reload();
+      return;
+    }
+  }, [token]);
+
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
