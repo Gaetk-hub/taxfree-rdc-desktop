@@ -112,25 +112,27 @@ export default function DownloadPage() {
           </div>
 
           {/* Platform Selector */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-12">
+          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 mb-8 sm:mb-12">
             <h2 className="text-lg font-semibold text-gray-900 mb-6 text-center">
               Choisissez votre système d'exploitation
             </h2>
             
-            <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
               {(Object.keys(platforms) as Array<keyof typeof platforms>).map((platform) => (
                 <button
                   key={platform}
                   onClick={() => setSelectedPlatform(platform)}
-                  className={`p-6 rounded-xl border-2 transition-all ${
+                  className={`p-4 sm:p-6 rounded-xl border-2 transition-all flex sm:flex-col items-center sm:items-start gap-4 sm:gap-0 ${
                     selectedPlatform === platform
                       ? 'border-blue-600 bg-blue-50'
                       : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
                   }`}
                 >
-                  <div className="text-4xl mb-3">{platforms[platform].icon}</div>
-                  <div className="font-semibold text-gray-900">{platforms[platform].name}</div>
-                  <div className="text-sm text-gray-500 mt-1">{platforms[platform].description}</div>
+                  <div className="text-3xl sm:text-4xl sm:mb-3">{platforms[platform].icon}</div>
+                  <div className="text-left sm:text-left">
+                    <div className="font-semibold text-gray-900">{platforms[platform].name}</div>
+                    <div className="text-xs sm:text-sm text-gray-500 sm:mt-1">{platforms[platform].description}</div>
+                  </div>
                 </button>
               ))}
             </div>
@@ -141,7 +143,7 @@ export default function DownloadPage() {
                 <a
                   href={currentPlatform.downloadUrl}
                   download
-                  className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg"
+                  className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
                 >
                   <ArrowDownTrayIcon className="w-6 h-6" />
                   <div className="text-left">
@@ -171,11 +173,11 @@ export default function DownloadPage() {
           </div>
 
           {/* Features */}
-          <div className="mb-16">
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+          <div className="mb-12 sm:mb-16">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-6 sm:mb-8">
               Pourquoi utiliser l'application desktop ?
             </h2>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {features.map((feature, index) => (
                 <div key={index} className="bg-white rounded-xl p-6 shadow-lg">
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
@@ -189,9 +191,9 @@ export default function DownloadPage() {
           </div>
 
           {/* Requirements */}
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Configuration requise</h2>
-            <div className="grid md:grid-cols-3 gap-8">
+          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Configuration requise</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <span className="text-2xl">🪟</span> Windows

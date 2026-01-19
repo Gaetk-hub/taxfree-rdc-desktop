@@ -8,24 +8,31 @@ export default defineConfig(({ mode }) => ({
     // Disable PWA in development to avoid caching issues
     mode !== 'development' && VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.png', 'robots.txt', 'apple-touch-icon.png', 'images/logodetaxerdc.png'],
       manifest: {
-        name: 'Tax Free RDC',
-        short_name: 'TaxFree',
-        description: 'Système de détaxe pour la RDC',
-        theme_color: '#1e40af',
+        name: 'Tax Free RDC - Détaxe officielle',
+        short_name: 'Tax Free RDC',
+        description: 'Service de détaxe 100% digital pour les voyageurs en RDC. Récupérez jusqu\'à 16% de TVA sur vos achats.',
+        theme_color: '#2563eb',
         background_color: '#ffffff',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
+        orientation: 'portrait-primary',
+        categories: ['finance', 'shopping', 'travel'],
+        lang: 'fr',
         icons: [
           {
-            src: '/icon-192.png',
+            src: '/images/logodetaxerdc.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
-            src: '/icon-512.png',
+            src: '/images/logodetaxerdc.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       },

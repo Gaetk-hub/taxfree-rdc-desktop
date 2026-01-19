@@ -1,0 +1,26 @@
+# Robots.txt for Tax Free RDC
+# https://detaxerdc.vercel.app
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /api
+Disallow: /settings
+
+# Allow search engines to index public pages
+Allow: /
+Allow: /voyageurs
+Allow: /commercants
+Allow: /comment-ca-marche
+Allow: /contact
+Allow: /status
+Allow: /download
+
+# Sitemap location
+Sitemap: https://detaxerdc.vercel.app/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1

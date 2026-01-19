@@ -7,6 +7,9 @@ import {
   UserCircleIcon, MagnifyingGlassIcon, ArrowRightIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline';
+import ScrollToTop from '../components/public/ScrollToTop';
+import CookieConsent from '../components/public/CookieConsent';
+import ChatBot from '../components/public/ChatBot';
 
 // Top bar with contact info and language selector
 function TopBar({ scrolled }: { scrolled: boolean }) {
@@ -84,6 +87,58 @@ function TopBar({ scrolled }: { scrolled: boolean }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Mobile Language Selector Component
+function MobileLanguageSelector() {
+  const { i18n } = useTranslation();
+  const [langOpen, setLangOpen] = useState(false);
+  
+  const languages = [
+    { code: 'fr', label: 'FR', flag: '🇫🇷' },
+    { code: 'en', label: 'EN', flag: '🇬🇧' },
+    { code: 'zh', label: '中文', flag: '🇨🇳' }
+  ];
+  
+  const currentLang = languages.find(l => l.code === i18n.language) || languages[0];
+  
+  const changeLanguage = (code: string) => {
+    i18n.changeLanguage(code);
+    setLangOpen(false);
+  };
+  
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => setLangOpen(!langOpen)}
+        className="flex items-center gap-1 p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+        aria-label="Changer de langue"
+      >
+        <GlobeAltIcon className="w-5 h-5" />
+        <span className="text-xs font-medium">{currentLang.flag}</span>
+      </button>
+      
+      {langOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
+          <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-2xl py-2 z-50 min-w-[120px] border border-gray-100">
+            {languages.map((l) => (
+              <button 
+                key={l.code} 
+                onClick={() => changeLanguage(l.code)}
+                className={`flex items-center w-full px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                  i18n.language === l.code ? 'text-blue-600 bg-blue-50 font-medium' : 'text-gray-700'
+                }`}
+              >
+                <span className="mr-2">{l.flag}</span>
+                {l.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -269,18 +324,24 @@ function Navigation() {
               </Link>
             </div>
 
-            {/* Mobile menu button */}
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100"
-              aria-label="Menu"
-            >
-              {mobileMenuOpen ? (
-                <XMarkIcon className="w-6 h-6" />
-              ) : (
-                <Bars3Icon className="w-6 h-6" />
-              )}
-            </button>
+            {/* Mobile Actions - Language + Menu */}
+            <div className="lg:hidden flex items-center gap-2">
+              {/* Mobile Language Selector */}
+              <MobileLanguageSelector />
+              
+              {/* Mobile menu button */}
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100"
+                aria-label="Menu"
+              >
+                {mobileMenuOpen ? (
+                  <XMarkIcon className="w-6 h-6" />
+                ) : (
+                  <Bars3Icon className="w-6 h-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -426,8 +487,23 @@ function Footer() {
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-800 mt-12 pt-8 text-sm text-center text-gray-500">
-          <p>© {new Date().getFullYear()} Tax Free RDC. {t('footer.copyright')}</p>
+        <div className="border-t border-gray-800 mt-12 pt-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-gray-500">
+              © {new Date().getFullYear()} Tax Free RDC. {t('footer.copyright')}
+            </p>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span>{t('footer.developedBy', 'Développé par')}</span>
+              <a 
+                href="https://netgoconsulting.tech" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+              >
+                Netgo Consulting
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
@@ -445,6 +521,11 @@ export default function PublicLayout() {
         <Outlet />
       </main>
       <Footer />
+      
+      {/* Floating Components */}
+      <ScrollToTop />
+      <ChatBot />
+      <CookieConsent />
     </div>
   );
 }

@@ -2,13 +2,130 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1e40af" />
-    <meta name="description" content="Système de détaxe Tax Free pour la RDC" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- Primary Meta Tags -->
+    <title>Tax Free RDC - Détaxe officielle en République Démocratique du Congo</title>
+    <meta name="title" content="Tax Free RDC - Détaxe officielle en République Démocratique du Congo" />
+    <meta name="description" content="Récupérez jusqu'à 16% de TVA sur vos achats en RDC. Service de détaxe 100% digital pour les voyageurs internationaux. Simple, rapide et sécurisé." />
+    <meta name="keywords" content="détaxe, tax free, RDC, Congo, remboursement TVA, shopping, voyageurs, tourisme, aéroport, Kinshasa, Lubumbashi" />
+    <meta name="author" content="Netgo Consulting" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="French" />
+    <meta name="revisit-after" content="7 days" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://detaxerdc.vercel.app" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    
+    <!-- Theme -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://detaxerdc.vercel.app" />
+    <meta property="og:title" content="Tax Free RDC - Détaxe officielle en République Démocratique du Congo" />
+    <meta property="og:description" content="Récupérez jusqu'à 16% de TVA sur vos achats en RDC. Service de détaxe 100% digital pour les voyageurs internationaux." />
+    <meta property="og:image" content="https://detaxerdc.vercel.app/images/logodetaxerdc.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="Tax Free RDC" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://detaxerdc.vercel.app" />
+    <meta name="twitter:title" content="Tax Free RDC - Détaxe officielle en RDC" />
+    <meta name="twitter:description" content="Récupérez jusqu'à 16% de TVA sur vos achats en RDC. Service de détaxe 100% digital." />
+    <meta name="twitter:image" content="https://detaxerdc.vercel.app/images/logodetaxerdc.png" />
+    
+    <!-- Geo Tags -->
+    <meta name="geo.region" content="CD" />
+    <meta name="geo.placename" content="Kinshasa" />
+    <meta name="geo.position" content="-4.4419;15.2663" />
+    <meta name="ICBM" content="-4.4419, 15.2663" />
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <title>Tax Free RDC</title>
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Tax Free RDC",
+      "alternateName": "Détaxe RDC",
+      "url": "https://detaxerdc.vercel.app",
+      "logo": "https://detaxerdc.vercel.app/images/logodetaxerdc.png",
+      "description": "Service officiel de détaxe Tax Free en République Démocratique du Congo. Récupérez la TVA sur vos achats.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Kinshasa",
+        "addressCountry": "CD"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+243-81-234-5678",
+        "contactType": "customer service",
+        "email": "contact@taxfree.cd",
+        "availableLanguage": ["French", "English"]
+      },
+      "sameAs": [
+        "https://netgoconsulting.tech"
+      ]
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Tax Free RDC",
+      "url": "https://detaxerdc.vercel.app",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://detaxerdc.vercel.app/status?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "serviceType": "Tax Refund Service",
+      "name": "Détaxe Tax Free RDC",
+      "description": "Service de remboursement de TVA pour les voyageurs internationaux en République Démocratique du Congo",
+      "provider": {
+        "@type": "Organization",
+        "name": "Tax Free RDC"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "Democratic Republic of the Congo"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Services de détaxe",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Remboursement TVA",
+              "description": "Récupérez jusqu'à 16% de TVA sur vos achats"
+            }
+          }
+        ]
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
