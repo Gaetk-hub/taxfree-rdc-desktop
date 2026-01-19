@@ -300,16 +300,27 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         # Handle file attachments
         files = self.request.FILES.getlist('attachments')
         for file in files:
-            ChatAttachment.objects.create(
-                message=message,
-                file=file,
-                filename=file.name,
-                file_type=file.content_type,
-                file_size=file.size
-            )
+            try:
+                ChatAttachment.objects.create(
+                    message=message,
+                    file=file,
+                    filename=file.name,
+                    file_type=file.content_type or 'application/octet-stream',
+                    file_size=file.size or 0
+                )
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error creating chat attachment: {e}")
+                # Continue without attachment rather than failing the whole message
         
         # Send notification to other party
-        SupportNotificationService.notify_new_chat_message(message)
+        try:
+            SupportNotificationService.notify_new_chat_message(message)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error sending notification: {e}")
 
 
 # =============================================================================

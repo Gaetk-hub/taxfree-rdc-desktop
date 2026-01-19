@@ -55,6 +55,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
 
 class ChatMessageCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating chat messages."""
+    content = serializers.CharField(required=False, allow_blank=True, default='')
     
     class Meta:
         model = ChatMessage
@@ -65,6 +66,9 @@ class ChatMessageCreateSerializer(serializers.ModelSerializer):
         validated_data['sender'] = user
         # Determine if from support (admin/operator)
         validated_data['is_from_support'] = user.role in ['ADMIN', 'OPERATOR', 'AUDITOR']
+        # Set default content if empty
+        if not validated_data.get('content'):
+            validated_data['content'] = '📎 Pièce(s) jointe(s)'
         return super().create(validated_data)
 
 
