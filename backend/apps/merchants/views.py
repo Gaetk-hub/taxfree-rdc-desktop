@@ -882,8 +882,13 @@ class MerchantTravelersView(APIView):
         search = request.query_params.get('search', '').strip()
 
         # Get all travelers who have forms with this merchant
+        # IMPORTANT: Filter by outlet for employees (strict data isolation)
+        forms_filter = {'invoice__merchant': merchant}
+        if user.is_merchant_employee() and user.outlet_id:
+            forms_filter['invoice__outlet_id'] = user.outlet_id
+        
         traveler_ids = TaxFreeForm.objects.filter(
-            invoice__merchant=merchant
+            **forms_filter
         ).values_list('traveler_id', flat=True).distinct()
 
         travelers_data = []
@@ -906,10 +911,10 @@ class MerchantTravelersView(APIView):
                         search_lower in email):
                     continue
 
-            # Get forms for this traveler at this merchant
+            # Get forms for this traveler at this merchant (filtered by outlet for employees)
             forms = TaxFreeForm.objects.filter(
-                invoice__merchant=merchant,
-                traveler=traveler
+                traveler=traveler,
+                **forms_filter
             )
             
             stats = forms.aggregate(
@@ -991,10 +996,18 @@ class MerchantTravelerDetailView(APIView):
             return Response({'detail': 'Traveler not found'}, status=404)
 
         # Get all forms for this traveler at this merchant
+        # IMPORTANT: Filter by outlet for employees (strict data isolation)
+        forms_filter = {'invoice__merchant': merchant, 'traveler': traveler}
+        if user.is_merchant_employee() and user.outlet_id:
+            forms_filter['invoice__outlet_id'] = user.outlet_id
+        
         forms = TaxFreeForm.objects.filter(
-            invoice__merchant=merchant,
-            traveler=traveler
+            **forms_filter
         ).select_related('invoice', 'invoice__outlet').order_by('-created_at')
+        
+        # Check if employee has access to this traveler
+        if user.is_merchant_employee() and not forms.exists():
+            return Response({'detail': 'Traveler not found'}, status=404)
 
         forms_data = []
         for form in forms:
