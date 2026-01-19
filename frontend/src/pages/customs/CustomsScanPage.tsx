@@ -1187,39 +1187,39 @@ export default function CustomsScanPage() {
     );
   };
 
-  // Loading screen component
+  // Loading screen component - Light theme
   const renderLoadingScreen = () => {
     const loadingSteps = [
-      { icon: QrCodeIcon, label: 'Lecture du code...', color: 'text-blue-500' },
-      { icon: MagnifyingGlassIcon, label: 'Recherche du bordereau...', color: 'text-indigo-500' },
-      { icon: ShieldCheckIcon, label: 'Vérification des contrôles...', color: 'text-purple-500' },
-      { icon: CheckCircleIcon, label: 'Préparation des données...', color: 'text-emerald-500' },
+      { icon: QrCodeIcon, label: 'Lecture du code...', color: 'text-blue-600' },
+      { icon: MagnifyingGlassIcon, label: 'Recherche du bordereau...', color: 'text-indigo-600' },
+      { icon: ShieldCheckIcon, label: 'Vérification des contrôles...', color: 'text-purple-600' },
+      { icon: CheckCircleIcon, label: 'Préparation des données...', color: 'text-emerald-600' },
     ];
 
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 z-50 flex items-center justify-center">
         {/* Animated background circles */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-200/50 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-200/50 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
 
         <div className="relative z-10 text-center px-6">
           {/* Main loader */}
           <div className="relative w-32 h-32 mx-auto mb-8">
             {/* Outer ring */}
-            <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
+            <div className="absolute inset-0 border-4 border-gray-200 rounded-full" />
             {/* Spinning ring */}
-            <div className="absolute inset-0 border-4 border-transparent border-t-blue-400 border-r-blue-400 rounded-full animate-spin" />
+            <div className="absolute inset-0 border-4 border-transparent border-t-blue-500 border-r-blue-500 rounded-full animate-spin" />
             {/* Inner circle with icon */}
-            <div className="absolute inset-4 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center">
-              <QrCodeIcon className="w-12 h-12 text-white animate-pulse" />
+            <div className="absolute inset-4 bg-white shadow-lg rounded-full flex items-center justify-center">
+              <QrCodeIcon className="w-12 h-12 text-blue-600 animate-pulse" />
             </div>
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-bold text-white mb-2">Chargement du bordereau</h2>
-          <p className="text-blue-200 mb-8">Veuillez patienter quelques instants...</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Chargement du bordereau</h2>
+          <p className="text-gray-500 mb-8">Veuillez patienter quelques instants...</p>
 
           {/* Progress steps */}
           <div className="max-w-sm mx-auto space-y-3">
@@ -1233,35 +1233,35 @@ export default function CustomsScanPage() {
                   key={index}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-500 ${
                     isActive 
-                      ? 'bg-white/20 backdrop-blur-sm scale-105' 
+                      ? 'bg-white shadow-lg scale-105 border border-blue-200' 
                       : isCompleted 
-                        ? 'bg-white/10 opacity-60' 
-                        : 'bg-white/5 opacity-40'
+                        ? 'bg-white/80 border border-gray-100' 
+                        : 'bg-gray-100/50 border border-transparent'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                     isActive 
-                      ? 'bg-white/20' 
+                      ? 'bg-blue-100' 
                       : isCompleted 
-                        ? 'bg-emerald-500/30' 
-                        : 'bg-white/10'
+                        ? 'bg-emerald-100' 
+                        : 'bg-gray-200'
                   }`}>
                     {isCompleted ? (
-                      <CheckCircleIcon className="w-5 h-5 text-emerald-400" />
+                      <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
                     ) : (
-                      <StepIcon className={`w-5 h-5 ${isActive ? step.color : 'text-white/50'}`} />
+                      <StepIcon className={`w-5 h-5 ${isActive ? step.color : 'text-gray-400'}`} />
                     )}
                   </div>
                   <span className={`text-sm font-medium ${
-                    isActive ? 'text-white' : isCompleted ? 'text-emerald-300' : 'text-white/50'
+                    isActive ? 'text-gray-900' : isCompleted ? 'text-emerald-700' : 'text-gray-400'
                   }`}>
                     {step.label}
                   </span>
                   {isActive && (
                     <div className="ml-auto flex gap-1">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   )}
                 </div>
@@ -1270,7 +1270,7 @@ export default function CustomsScanPage() {
           </div>
 
           {/* Tax Free RDC branding */}
-          <div className="mt-12 flex items-center justify-center gap-2 text-white/40">
+          <div className="mt-12 flex items-center justify-center gap-2 text-gray-400">
             <ShieldCheckIcon className="w-5 h-5" />
             <span className="text-sm font-medium">Tax Free RDC</span>
           </div>
