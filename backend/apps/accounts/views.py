@@ -64,14 +64,20 @@ class LoginStep1View(APIView):
     """
     Step 1 of 2FA login: Validate credentials and send OTP.
     Applies dynamic security settings: max_login_attempts, account lockout.
+    
+    For mobile app (client_type='mobile'), only MERCHANT and MERCHANT_EMPLOYEE roles are allowed.
     """
     permission_classes = [AllowAny]
+    
+    # Roles allowed for mobile app login
+    MOBILE_ALLOWED_ROLES = [UserRole.MERCHANT, UserRole.MERCHANT_EMPLOYEE]
     
     def post(self, request):
         from .security_service import SecurityService
         
         email = request.data.get('email')
         password = request.data.get('password')
+        client_type = request.data.get('client_type', 'web')  # 'web' or 'mobile'
         
         if not email or not password:
             return Response(
@@ -112,6 +118,17 @@ class LoginStep1View(APIView):
                     status=status.HTTP_429_TOO_MANY_REQUESTS
                 )
             
+            # For mobile app, show a specific message to not reveal if account exists
+            if client_type == 'mobile':
+                return Response(
+                    {
+                        'detail': 'Aucun compte commerçant avec ces identifiants.',
+                        'code': 'merchant_not_found',
+                        'attempts_remaining': attempts_remaining
+                    },
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            
             return Response(
                 {
                     'detail': 'Email ou mot de passe incorrect.',
@@ -125,6 +142,18 @@ class LoginStep1View(APIView):
                 {'detail': 'Ce compte est désactivé.'},
                 status=status.HTTP_403_FORBIDDEN
             )
+        
+        # For mobile app, check if user has merchant role
+        if client_type == 'mobile':
+            if user.role not in self.MOBILE_ALLOWED_ROLES:
+                return Response(
+                    {
+                        'detail': 'Aucun compte commerçant avec ces identifiants.',
+                        'code': 'merchant_not_found',
+                        'message': 'L\'application mobile est réservée aux commerçants et leurs employés.'
+                    },
+                    status=status.HTTP_403_FORBIDDEN
+                )
         
         # Clear failed attempts on successful credential validation
         SecurityService.clear_failed_attempts(email)
