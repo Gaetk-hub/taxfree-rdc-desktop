@@ -382,14 +382,17 @@ export default function Navbar({ onMenuClick, onLogout }: NavbarProps) {
                     <UserCircleIcon className="w-5 h-5 text-gray-400" />
                     Mon profil
                   </Link>
-                  <Link 
-                    to={getSettingsUrl()} 
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    onClick={() => setShowProfileMenu(false)}
-                  >
-                    <Cog6ToothIcon className="w-5 h-5 text-gray-400" />
-                    Paramètres
-                  </Link>
+                  {/* Hide settings for employees - they don't have admin access */}
+                  {user?.role !== 'MERCHANT_EMPLOYEE' && (
+                    <Link 
+                      to={getSettingsUrl()} 
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      <Cog6ToothIcon className="w-5 h-5 text-gray-400" />
+                      Paramètres
+                    </Link>
+                  )}
                 </div>
                 <div className="border-t border-gray-100 py-1">
                   <button 
