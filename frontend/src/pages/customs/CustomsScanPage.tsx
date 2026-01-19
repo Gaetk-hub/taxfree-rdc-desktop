@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Html5Qrcode } from 'html5-qrcode';
+import jsQR from 'jsqr';
 import api, { taxfreeApi } from '../../services/api';
 import FadeIn from '../../components/ui/FadeIn';
 import toast from 'react-hot-toast';
@@ -97,12 +97,14 @@ export default function CustomsScanPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   
-  // Camera scanner state
+  // Camera scanner state - Using jsQR for faster detection
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
-  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
-  const scannerContainerId = 'qr-scanner-modal-container';
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scanIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
   // Loading state for bordereau lookup
   const [isLoadingBordereau, setIsLoadingBordereau] = useState(false);
@@ -153,17 +155,14 @@ export default function CustomsScanPage() {
   // Cleanup camera on unmount
   useEffect(() => {
     return () => {
-      if (html5QrCodeRef.current) {
-        html5QrCodeRef.current.stop().catch(() => {});
-      }
+      stopCamera();
     };
   }, []);
 
   const openCameraModal = () => {
     setShowCameraModal(true);
     setCameraError(null);
-    // Start camera after modal is rendered
-    setTimeout(() => startCameraInModal(), 300);
+    setTimeout(() => startCamera(), 300);
   };
 
   const closeCameraModal = () => {
@@ -172,91 +171,102 @@ export default function CustomsScanPage() {
     setCameraError(null);
   };
 
-  const startCameraInModal = async () => {
+  // Start camera using jsQR - much faster detection
+  const startCamera = async () => {
+    if (isCameraActive) return;
+
     try {
-      const container = document.getElementById(scannerContainerId);
-      if (!container) {
-        throw new Error('Scanner container not found');
-      }
-      
-      if (html5QrCodeRef.current) {
-        try {
-          await html5QrCodeRef.current.stop();
-        } catch (e) {}
-        html5QrCodeRef.current = null;
-      }
-      
-      const html5QrCode = new Html5Qrcode(scannerContainerId);
-      html5QrCodeRef.current = html5QrCode;
-      
-      const cameras = await Html5Qrcode.getCameras();
-      
-      const onQrDetected = (decodedText: string) => {
-        setIsScanning(true);
-        setQrInput(decodedText);
-        stopCamera();
-        scanMutation.mutate(decodedText);
-      };
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { min: 320, ideal: 1280, max: 1920 },
+          height: { min: 240, ideal: 720, max: 1080 },
+          facingMode: 'environment'
+        }
+      });
 
-      // Configuration OPTIMISÉE pour une meilleure détection à distance
-      // - fps plus élevé pour une détection plus rapide
-      // - qrbox plus grand pour scanner des QR codes plus petits/éloignés
-      // - formatsToSupport limité aux QR codes pour plus de rapidité
-      const scanConfig = {
-        fps: 30, // Plus rapide
-        qrbox: function(viewfinderWidth: number, viewfinderHeight: number) {
-          // Zone de scan = 80% de la largeur pour capturer plus facilement
-          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-          const qrboxSize = Math.floor(minEdge * 0.8);
-          return { width: qrboxSize, height: qrboxSize };
-        },
-        aspectRatio: 1.0,
-        disableFlip: false,
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true // Utilise l'API native si disponible (plus rapide)
-        },
-        formatsToSupport: [0], // 0 = QR_CODE uniquement, plus rapide
-      };
+      if (videoRef.current) {
+        const video = videoRef.current;
+        video.srcObject = stream;
+        video.muted = true;
+        video.playsInline = true;
+        video.autoplay = true;
 
-      // Préférer la caméra arrière avec haute résolution
-      const cameraConstraints = {
-        facingMode: 'environment',
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        focusMode: 'continuous' as const,
-      };
-
-      if (cameras && cameras.length > 0) {
-        // Chercher la caméra arrière principale (souvent la meilleure qualité)
-        const backCamera = cameras.find(c => 
-          c.label.toLowerCase().includes('back') || 
-          c.label.toLowerCase().includes('rear') ||
-          c.label.toLowerCase().includes('arrière')
-        );
-        const cameraId = backCamera?.id || cameras[0].id;
-        await html5QrCode.start(cameraId, scanConfig, onQrDetected, () => {});
-      } else {
-        await html5QrCode.start(cameraConstraints, scanConfig, onQrDetected, () => {});
+        video.onloadedmetadata = async () => {
+          try {
+            await video.play();
+            setIsCameraActive(true);
+            startContinuousScanning();
+          } catch (err) {
+            console.error('Video play error:', err);
+          }
+        };
       }
     } catch (err: any) {
       console.error('Camera error:', err);
       let errorMessage = 'Impossible d\'accéder à la caméra';
-      if (err.message?.includes('Permission')) {
+      if (err.name === 'NotAllowedError') {
         errorMessage = 'Permission caméra refusée';
-      } else if (err.message?.includes('NotFound')) {
+      } else if (err.name === 'NotFoundError') {
         errorMessage = 'Aucune caméra détectée';
       }
       setCameraError(errorMessage);
     }
   };
 
-  const stopCamera = async () => {
-    if (html5QrCodeRef.current) {
-      try {
-        await html5QrCodeRef.current.stop();
-      } catch (err) {}
-      html5QrCodeRef.current = null;
+  // Continuous scanning with jsQR - scans every 100ms for fast detection
+  const startContinuousScanning = () => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
     }
+
+    scanIntervalRef.current = setInterval(() => {
+      if (!videoRef.current || !canvasRef.current || isScanning) return;
+
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA && context && video.videoWidth > 0) {
+        // Use native video resolution for better quality
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        
+        // jsQR detection - very fast
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        
+        if (code) {
+          handleQRDetected(code.data);
+        }
+      }
+    }, 100); // Scan every 100ms - very responsive
+  };
+
+  const handleQRDetected = (decodedText: string) => {
+    setIsScanning(true);
+    setQrInput(decodedText);
+    stopCamera();
+    scanMutation.mutate(decodedText);
+  };
+
+  const stopCamera = () => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+    }
+
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+
+    setIsCameraActive(false);
   };
   
 
@@ -526,7 +536,7 @@ export default function CustomsScanPage() {
             </button>
           </div>
 
-          {/* Scanner area */}
+          {/* Scanner area - Using jsQR for fast detection */}
           {isScanning ? (
             <div className="p-8 flex flex-col items-center justify-center">
               <div className="relative">
@@ -538,18 +548,45 @@ export default function CustomsScanPage() {
             </div>
           ) : (
             <>
-              <div 
-                id={scannerContainerId} 
-                className="bg-black"
-                style={{ height: '320px', width: '100%' }}
-              />
+              <div className="relative bg-black" style={{ height: '320px', width: '100%' }}>
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                  playsInline
+                  muted
+                  autoPlay
+                />
+                <canvas ref={canvasRef} className="hidden" />
+                
+                {/* Scan overlay with corners */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-56 h-56 border-2 border-white/50 rounded-xl relative">
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-400 rounded-tl-xl" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-400 rounded-tr-xl" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-400 rounded-bl-xl" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-400 rounded-br-xl" />
+                    {/* Animated scan line */}
+                    <div className="absolute inset-x-0 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent animate-pulse" />
+                  </div>
+                </div>
+
+                {/* Camera initializing overlay */}
+                {!isCameraActive && !cameraError && (
+                  <div className="absolute inset-0 bg-gray-900/90 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-3" />
+                      <p className="text-sm">Initialisation de la caméra...</p>
+                    </div>
+                  </div>
+                )}
+              </div>
               {cameraError ? (
                 <div className="p-4 bg-red-50">
                   <p className="text-sm text-red-700 text-center">{cameraError}</p>
                 </div>
               ) : (
                 <div className="p-3 bg-gray-50 text-center">
-                  <p className="text-sm text-gray-500">Placez le QR code dans le cadre</p>
+                  <p className="text-sm text-gray-500">Placez le QR code dans le cadre - Détection ultra-rapide</p>
                 </div>
               )}
             </>
