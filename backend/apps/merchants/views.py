@@ -228,6 +228,9 @@ class OutletViewSet(viewsets.ModelViewSet):
         
         if user.is_merchant_user() and user.merchant:
             queryset = queryset.filter(merchant=user.merchant)
+            # IMPORTANT: Employees can only see their assigned outlet
+            if user.is_merchant_employee() and user.outlet_id:
+                queryset = queryset.filter(id=user.outlet_id)
         elif not user.is_admin() and not user.is_auditor():
             queryset = queryset.none()
         
@@ -307,7 +310,10 @@ class MerchantDashboardView(APIView):
         start_of_prev_month = (start_of_month - timedelta(days=1)).replace(day=1)
         
         # Base queryset for forms (ALL forms for status counts)
+        # IMPORTANT: Filter by outlet for employees (strict data isolation)
         all_forms_qs = TaxFreeForm.objects.filter(invoice__merchant=merchant)
+        if user.is_merchant_employee() and user.outlet_id:
+            all_forms_qs = all_forms_qs.filter(invoice__outlet_id=user.outlet_id)
         all_forms_this_month = all_forms_qs.filter(created_at__gte=start_of_month)
         
         # Queryset excluding cancelled forms (for financial calculations)
@@ -501,7 +507,11 @@ class MerchantOutletViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not user.merchant:
             return Outlet.objects.none()
-        return Outlet.objects.filter(merchant=user.merchant)
+        queryset = Outlet.objects.filter(merchant=user.merchant)
+        # IMPORTANT: Employees can only see their assigned outlet
+        if user.is_merchant_employee() and user.outlet_id:
+            queryset = queryset.filter(id=user.outlet_id)
+        return queryset
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -559,7 +569,7 @@ class MerchantOutletViewSet(viewsets.ModelViewSet):
 class MerchantUserViewSet(viewsets.ModelViewSet):
     """
     ViewSet for merchant to manage their users/employees.
-    Only accessible by merchant admins.
+    Only accessible by merchant admins (not employees).
     """
     permission_classes = [IsAuthenticated, IsMerchantOnly]
     filterset_fields = ['role', 'outlet_id', 'is_active']
@@ -574,6 +584,9 @@ class MerchantUserViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if not user.merchant:
+            return User.objects.none()
+        # IMPORTANT: Employees cannot access user management
+        if user.is_merchant_employee():
             return User.objects.none()
         # Get all users belonging to this merchant
         return User.objects.filter(
@@ -1037,7 +1050,10 @@ class MerchantReportsView(APIView):
         end_date = request.query_params.get('end_date')
 
         # All forms for status counts
+        # IMPORTANT: Filter by outlet for employees (strict data isolation)
         all_forms_qs = TaxFreeForm.objects.filter(invoice__merchant=merchant)
+        if user.is_merchant_employee() and user.outlet_id:
+            all_forms_qs = all_forms_qs.filter(invoice__outlet_id=user.outlet_id)
 
         if start_date:
             all_forms_qs = all_forms_qs.filter(created_at__date__gte=start_date)

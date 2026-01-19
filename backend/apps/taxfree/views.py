@@ -43,7 +43,13 @@ class TravelerViewSet(viewsets.ModelViewSet):
             if user.is_merchant_user() and user.merchant:
                 queryset = queryset.filter(
                     taxfree_forms__invoice__merchant=user.merchant
-                ).distinct()
+                )
+                # IMPORTANT: Employees can only see travelers from their outlet
+                if user.is_merchant_employee() and user.outlet_id:
+                    queryset = queryset.filter(
+                        taxfree_forms__invoice__outlet_id=user.outlet_id
+                    )
+                queryset = queryset.distinct()
             else:
                 queryset = queryset.none()
         
