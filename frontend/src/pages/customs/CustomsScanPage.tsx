@@ -103,6 +103,10 @@ export default function CustomsScanPage() {
   const [isScanning, setIsScanning] = useState(false);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerId = 'qr-scanner-modal-container';
+  
+  // Loading state for bordereau lookup
+  const [isLoadingBordereau, setIsLoadingBordereau] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
 
   // Accordion state for collapsible sections
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -194,19 +198,45 @@ export default function CustomsScanPage() {
         scanMutation.mutate(decodedText);
       };
 
-      // Configuration optimisée pour une meilleure détection
+      // Configuration OPTIMISÉE pour une meilleure détection à distance
+      // - fps plus élevé pour une détection plus rapide
+      // - qrbox plus grand pour scanner des QR codes plus petits/éloignés
+      // - formatsToSupport limité aux QR codes pour plus de rapidité
       const scanConfig = {
-        fps: 15,
-        qrbox: { width: 280, height: 280 },
+        fps: 30, // Plus rapide
+        qrbox: function(viewfinderWidth: number, viewfinderHeight: number) {
+          // Zone de scan = 80% de la largeur pour capturer plus facilement
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+          const qrboxSize = Math.floor(minEdge * 0.8);
+          return { width: qrboxSize, height: qrboxSize };
+        },
         aspectRatio: 1.0,
         disableFlip: false,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true // Utilise l'API native si disponible (plus rapide)
+        },
+        formatsToSupport: [0], // 0 = QR_CODE uniquement, plus rapide
+      };
+
+      // Préférer la caméra arrière avec haute résolution
+      const cameraConstraints = {
+        facingMode: 'environment',
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        focusMode: 'continuous' as const,
       };
 
       if (cameras && cameras.length > 0) {
-        const cameraId = cameras.find(c => c.label.toLowerCase().includes('back'))?.id || cameras[0].id;
+        // Chercher la caméra arrière principale (souvent la meilleure qualité)
+        const backCamera = cameras.find(c => 
+          c.label.toLowerCase().includes('back') || 
+          c.label.toLowerCase().includes('rear') ||
+          c.label.toLowerCase().includes('arrière')
+        );
+        const cameraId = backCamera?.id || cameras[0].id;
         await html5QrCode.start(cameraId, scanConfig, onQrDetected, () => {});
       } else {
-        await html5QrCode.start({ facingMode: 'environment' }, scanConfig, onQrDetected, () => {});
+        await html5QrCode.start(cameraConstraints, scanConfig, onQrDetected, () => {});
       }
     } catch (err: any) {
       console.error('Camera error:', err);
@@ -230,23 +260,40 @@ export default function CustomsScanPage() {
   };
   
 
+  // Animate loading steps
+  useEffect(() => {
+    if (isLoadingBordereau) {
+      setLoadingStep(0);
+      const steps = [0, 1, 2, 3];
+      let currentStep = 0;
+      const interval = setInterval(() => {
+        currentStep = (currentStep + 1) % steps.length;
+        setLoadingStep(currentStep);
+      }, 800);
+      return () => clearInterval(interval);
+    }
+  }, [isLoadingBordereau]);
+
   // Scan mutation (QR code)
   const scanMutation = useMutation({
     mutationFn: async (qr: string) => {
+      setIsLoadingBordereau(true);
+      setShowCameraModal(false);
       const response = await api.post('/customs/scan/', { qr_string: qr });
       return response.data;
     },
     onSuccess: (data) => {
-      setScanResult(data);
-      setViewMode('result');
-      // Close camera modal and reset scanning state
-      setShowCameraModal(false);
-      setIsScanning(false);
+      setTimeout(() => {
+        setScanResult(data);
+        setViewMode('result');
+        setIsLoadingBordereau(false);
+        setIsScanning(false);
+      }, 1500); // Minimum loading time for smooth UX
     },
     onError: (err: any) => {
       const errorMsg = err.response?.data?.qr_string?.[0] || err.response?.data?.error || 'Erreur de scan';
       toast.error(errorMsg);
-      setShowCameraModal(false);
+      setIsLoadingBordereau(false);
       setIsScanning(false);
     },
   });
@@ -254,15 +301,20 @@ export default function CustomsScanPage() {
   // Lookup by form number
   const lookupMutation = useMutation({
     mutationFn: async (formNumber: string) => {
+      setIsLoadingBordereau(true);
       const response = await api.get(`/customs/lookup/${formNumber}/`);
       return response.data;
     },
     onSuccess: (data) => {
-      setScanResult(data);
-      setViewMode('result');
+      setTimeout(() => {
+        setScanResult(data);
+        setViewMode('result');
+        setIsLoadingBordereau(false);
+      }, 1500); // Minimum loading time for smooth UX
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.error || 'Bordereau non trouvé');
+      setIsLoadingBordereau(false);
     },
   });
 
@@ -1135,8 +1187,101 @@ export default function CustomsScanPage() {
     );
   };
 
+  // Loading screen component
+  const renderLoadingScreen = () => {
+    const loadingSteps = [
+      { icon: QrCodeIcon, label: 'Lecture du code...', color: 'text-blue-500' },
+      { icon: MagnifyingGlassIcon, label: 'Recherche du bordereau...', color: 'text-indigo-500' },
+      { icon: ShieldCheckIcon, label: 'Vérification des contrôles...', color: 'text-purple-500' },
+      { icon: CheckCircleIcon, label: 'Préparation des données...', color: 'text-emerald-500' },
+    ];
+
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 z-50 flex items-center justify-center">
+        {/* Animated background circles */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+
+        <div className="relative z-10 text-center px-6">
+          {/* Main loader */}
+          <div className="relative w-32 h-32 mx-auto mb-8">
+            {/* Outer ring */}
+            <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
+            {/* Spinning ring */}
+            <div className="absolute inset-0 border-4 border-transparent border-t-blue-400 border-r-blue-400 rounded-full animate-spin" />
+            {/* Inner circle with icon */}
+            <div className="absolute inset-4 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center">
+              <QrCodeIcon className="w-12 h-12 text-white animate-pulse" />
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-2xl font-bold text-white mb-2">Chargement du bordereau</h2>
+          <p className="text-blue-200 mb-8">Veuillez patienter quelques instants...</p>
+
+          {/* Progress steps */}
+          <div className="max-w-sm mx-auto space-y-3">
+            {loadingSteps.map((step, index) => {
+              const isActive = index === loadingStep;
+              const isCompleted = index < loadingStep;
+              const StepIcon = step.icon;
+
+              return (
+                <div
+                  key={index}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-500 ${
+                    isActive 
+                      ? 'bg-white/20 backdrop-blur-sm scale-105' 
+                      : isCompleted 
+                        ? 'bg-white/10 opacity-60' 
+                        : 'bg-white/5 opacity-40'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                    isActive 
+                      ? 'bg-white/20' 
+                      : isCompleted 
+                        ? 'bg-emerald-500/30' 
+                        : 'bg-white/10'
+                  }`}>
+                    {isCompleted ? (
+                      <CheckCircleIcon className="w-5 h-5 text-emerald-400" />
+                    ) : (
+                      <StepIcon className={`w-5 h-5 ${isActive ? step.color : 'text-white/50'}`} />
+                    )}
+                  </div>
+                  <span className={`text-sm font-medium ${
+                    isActive ? 'text-white' : isCompleted ? 'text-emerald-300' : 'text-white/50'
+                  }`}>
+                    {step.label}
+                  </span>
+                  {isActive && (
+                    <div className="ml-auto flex gap-1">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Tax Free RDC branding */}
+          <div className="mt-12 flex items-center justify-center gap-2 text-white/40">
+            <ShieldCheckIcon className="w-5 h-5" />
+            <span className="text-sm font-medium">Tax Free RDC</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <FadeIn duration={400}>
+      {isLoadingBordereau && renderLoadingScreen()}
       <div className="max-w-5xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Validation de bordereau</h1>
       
